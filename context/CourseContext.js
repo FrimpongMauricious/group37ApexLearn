@@ -1,6 +1,7 @@
 import React, { createContext, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getCurrentUserEmail } from '../utils/storageUtils';
+import { courses, trending, Recommended } from '../screens/AvailableCourses';
 
 export const CourseContext = createContext();
 
@@ -47,18 +48,45 @@ export const CourseProvider = ({ children }) => {
   };
 
   const addCourse = (newCourse) => {
+    const alreadyExists = userCourses.some(course => course.id === newCourse.id);
+    if (alreadyExists) return;
+
     const updated = [newCourse, ...userCourses];
     setUserCourses(updated);
     saveToStorage('userCourses', updated);
   };
 
   const enrollInCourse = (course) => {
-    const updated = [course, ...enrolledCourses];
+    const alreadyExists = enrolledCourses.some(c => c.id === course.id);
+    if (alreadyExists) return;
+
+    // Get the full course from static sources to fetch the videoUrl
+    const allAvailable = [...courses, ...trending, ...Recommended];
+    const fullCourse = allAvailable.find(c => c.id === course.id);
+
+    const courseWithProgress = {
+      ...course,
+      videoUrl: fullCourse?.videoUrl || '', // ✅ Ensure videoUrl is attached
+      progress: 0,
+    };
+
+    const updated = [courseWithProgress, ...enrolledCourses];
+    setEnrolledCourses(updated);
+    saveToStorage('enrolledCourses', updated);
+  };
+
+  const updateCourseProgress = (courseId, newProgress) => {
+    const updated = enrolledCourses.map((course) =>
+      course.id === courseId ? { ...course, progress: newProgress } : course
+    );
     setEnrolledCourses(updated);
     saveToStorage('enrolledCourses', updated);
   };
 
   const addToWishlist = (course) => {
+    const alreadyExists = wishlist.some(c => c.id === course.id);
+    if (alreadyExists) return;
+
     const updated = [course, ...wishlist];
     setWishlist(updated);
     saveToStorage('wishlist', updated);
@@ -78,6 +106,7 @@ export const CourseProvider = ({ children }) => {
         wishlist,
         addCourse,
         enrollInCourse,
+        updateCourseProgress,
         addToWishlist,
         removeFromWishlist,
       }}

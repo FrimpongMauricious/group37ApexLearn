@@ -6,14 +6,14 @@ import {
 import { UserContext } from '../context/UserContext';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
-import Icon from 'react-native-vector-icons/FontAwesome5'; // ✅ added for eye icon
+import Icon from 'react-native-vector-icons/FontAwesome5'; 
 
 const ProfileScreen = () => {
   const { user, updateUser } = useContext(UserContext);
   const [username, setUsername] = useState(user.username);
   const [password, setPassword] = useState(user.password);
   const [contact, setContact] = useState(user.contact);
-  const [showPassword, setShowPassword] = useState(false); // ✅ toggle
+  const [showPassword, setShowPassword] = useState(false); 
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({

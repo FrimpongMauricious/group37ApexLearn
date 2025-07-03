@@ -1,12 +1,29 @@
-import { StyleSheet, Text, View, FlatList, Image, TouchableOpacity } from 'react-native';
 import React, { useContext } from 'react';
+import {
+  StyleSheet,
+  Text,
+  View,
+  FlatList,
+  Image,
+  TouchableOpacity,
+} from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { RectButton, Swipeable } from 'react-native-gesture-handler';
 import { CourseContext } from '../context/CourseContext';
 
 const defaultImage = require('../assets/apexLearn2.png');
 
 const WishList = ({ navigation }) => {
-  const { wishlist } = useContext(CourseContext);
+  const { wishlist, removeFromWishlist } = useContext(CourseContext);
+
+  const renderRightActions = (courseId) => (
+    <RectButton
+      style={styles.deleteButton}
+      onPress={() => removeFromWishlist(courseId)}
+    >
+      <Text style={styles.deleteText}>Remove</Text>
+    </RectButton>
+  );
 
   const renderCourse = ({ item }) => {
     const imageSource =
@@ -15,20 +32,28 @@ const WishList = ({ navigation }) => {
         : item.image || defaultImage;
 
     return (
-      <TouchableOpacity
-        style={styles.courseItem}
-        onPress={() => navigation.navigate('payForWishCourse', {
-          screen: 'Payment',
-          params: { newCourse: item }
-        })}
-      >
-        <Image source={imageSource} style={styles.courseImage} />
-        <View style={styles.courseInfo}>
-          <Text style={styles.courseName}>{item.name}</Text>
-          <Text style={styles.courseAbout} numberOfLines={2}>{item.about}</Text>
-          <Text style={styles.courseMeta}>{item.amount} • {item.time}</Text>
-        </View>
-      </TouchableOpacity>
+      <Swipeable renderRightActions={() => renderRightActions(item.id)}>
+        <TouchableOpacity
+          style={styles.courseItem}
+          onPress={() =>
+            navigation.navigate('payForWishCourse', {
+              screen: 'Payment',
+              params: { newCourse: item },
+            })
+          }
+        >
+          <Image source={imageSource} style={styles.courseImage} />
+          <View style={styles.courseInfo}>
+            <Text style={styles.courseName}>{item.name}</Text>
+            <Text style={styles.courseAbout} numberOfLines={2}>
+              {item.about}
+            </Text>
+            <Text style={styles.courseMeta}>
+              {item.amount} • {item.time}
+            </Text>
+          </View>
+        </TouchableOpacity>
+      </Swipeable>
     );
   };
 
@@ -103,5 +128,17 @@ const styles = StyleSheet.create({
     marginTop: 6,
     color: '#4CAF50',
     fontSize: 12,
+  },
+  deleteButton: {
+    backgroundColor: '#e53935',
+    justifyContent: 'center',
+    alignItems: 'flex-end',
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    marginBottom: 15,
+  },
+  deleteText: {
+    color: '#fff',
+    fontWeight: 'bold',
   },
 });

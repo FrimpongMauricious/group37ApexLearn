@@ -14,6 +14,10 @@ const CourseCreation = ({ navigation }) => {
   const [numLessons, setNumLessons] = useState('');
   const [videoInputs, setVideoInputs] = useState([]);
 
+  const [courseName, setCourseName] = useState('');
+  const [amount, setAmount] = useState('');
+  const [description, setDescription] = useState('');
+
   const { addCourse } = useContext(CourseContext);
 
   const pickImage = async () => {
@@ -27,30 +31,49 @@ const CourseCreation = ({ navigation }) => {
     }
   };
 
-  const pickVideo = async (id) => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Videos,
-    });
-    if (!result.canceled) {
-      const updated = videoInputs.map((item) =>
-        item.id === id ? { ...item, video: result.assets[0].uri } : item
-      );
-      setVideoInputs(updated);
-    }
-  };
-
   const handleLessonCountChange = (value) => {
     setNumLessons(value);
     const count = parseInt(value, 10);
     if (!isNaN(count) && count > 0) {
       const newInputs = Array.from({ length: count }, (_, index) => ({
         id: index + 1,
-        video: '',
+        url: '',
       }));
       setVideoInputs(newInputs);
     } else {
       setVideoInputs([]);
     }
+  };
+
+  const handleLessonUrlChange = (id, text) => {
+    const updated = videoInputs.map((item) =>
+      item.id === id ? { ...item, url: text } : item
+    );
+    setVideoInputs(updated);
+  };
+
+  const handleSubmit = () => {
+    if (!thumbnail || !courseName || !amount || !description || !numLessons || videoInputs.some(v => !v.url)) {
+      alert('Please fill out all fields and provide video URLs for all lessons.');
+      return;
+    }
+
+    const newCourse = {
+      id: Date.now().toString(),
+      name: courseName,
+      amount: `₵${amount}`,
+      time: `${numLessons} lessons`,
+      image: thumbnail,
+      institution: 'User Uploaded',
+      tutor: 'You',
+      about: description,
+      tutorBio: require('../assets/apple.png'),
+      videoUrl: videoInputs[0].url, // use first video as main preview
+      lessons: videoInputs.map((v, i) => `Lesson ${i + 1}`),
+    };
+
+    addCourse(newCourse);
+    navigation.navigate('makePayment', { newCourse });
   };
 
   return (
@@ -82,8 +105,9 @@ const CourseCreation = ({ navigation }) => {
                   )}
                 </View>
 
-                <TextInput style={styles.input} placeholder="Course name" maxLength={36} />
-                <TextInput style={styles.input} placeholder="Field of study (e.g. Software engineering, AI, etc)" />
+                <TextInput style={styles.input} placeholder="Course name" value={courseName} onChangeText={setCourseName} />
+                <TextInput style={styles.input} placeholder="Course description" value={description} onChangeText={setDescription} />
+                <TextInput style={styles.input} placeholder="Course amount (GHS)" value={amount} keyboardType="numeric" onChangeText={setAmount} />
                 <TextInput
                   style={styles.input}
                   placeholder="Number of lessons"
@@ -93,52 +117,28 @@ const CourseCreation = ({ navigation }) => {
                 />
                 <TextInput
                   style={styles.input}
-                  placeholder="Bank Account number to receive Payment"
+                  placeholder="Account number (MOMO or Bank)"
                   keyboardType="numeric"
                 />
 
                 {videoInputs.length > 0 && (
                   <View style={{ marginTop: 10 }}>
-                    <Text style={{ fontWeight: 'bold', fontSize: 18, marginBottom: 10 }}>Upload Videos</Text>
+                    <Text style={{ fontWeight: 'bold', fontSize: 18, marginBottom: 10 }}>Paste Lesson Video URLs</Text>
                     {videoInputs.map((input) => (
-                      <TouchableOpacity
+                      <TextInput
                         key={input.id}
-                        style={styles.videoUploadBtn}
-                        onPress={() => pickVideo(input.id)}
-                      >
-                        <Text style={{ color: input.video ? 'green' : 'black' }}>
-                          {input.video
-                            ? `✔️ Lesson ${input.id} uploaded`
-                            : `Select Lesson ${input.id} video`}
-                        </Text>
-                      </TouchableOpacity>
+                        placeholder={`Lesson ${input.id} Video URL`}
+                        style={styles.videoInput}
+                        value={input.url}
+                        onChangeText={(text) => handleLessonUrlChange(input.id, text)}
+                      />
                     ))}
                   </View>
                 )}
 
                 <TouchableOpacity
                   style={styles.touhcable}
-                  onPress={() => {
-                    if (!thumbnail || !numLessons) {
-                      alert("Please upload a thumbnail and enter number of lessons.");
-                      return;
-                    }
-
-                    const newCourse = {
-                      id: Date.now().toString(),
-                      name: 'Untitled Course',
-                      amount: '$0.00',
-                      time: `${numLessons} lessons`,
-                      image: thumbnail,
-                      institution: 'User Uploaded',
-                      tutor: 'You',
-                      about: 'This is a user-created course.',
-                      tutorBio: require('../assets/apple.png'),
-                    };
-
-                    addCourse(newCourse); // ✅ SAVE SCOPED + TRIGGER NOTIFICATION
-                    navigation.navigate('makePayment', { newCourse });
-                  }}
+                  onPress={handleSubmit}
                 >
                   <Text style={styles.touchText}>Purchase creator power</Text>
                 </TouchableOpacity>
@@ -180,16 +180,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ccc',
   },
-  videoUploadBtn: {
+  videoInput: {
     width: '100%',
     height: 50,
-    backgroundColor: '#f1f1f1',
+    backgroundColor: '#fff',
     borderRadius: 10,
-    justifyContent: 'center',
     paddingHorizontal: 10,
-    marginBottom: 15,
     borderWidth: 1,
     borderColor: '#aaa',
+    marginBottom: 15,
   },
   touhcable: {
     width: '100%',

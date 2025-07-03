@@ -23,7 +23,7 @@ const firebaseConfig = {
 
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
-// ✅ Always initialize Auth manually with AsyncStorage
+//  Always initialize Auth manually with AsyncStorage
 const auth = initializeAuth(app, {
   persistence: getReactNativePersistence(AsyncStorage),
 });
@@ -35,7 +35,7 @@ export const registerUser = async (email, password) => {
   return userCredential;
 };
 
-// 🔐 Login
+// Login
 export const loginUser = async (email, password) => {
   return await signInWithEmailAndPassword(auth, email, password);
 };

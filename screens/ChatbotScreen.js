@@ -1,12 +1,9 @@
-
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, TextInput, StyleSheet, FlatList,
   TouchableOpacity, KeyboardAvoidingView, Platform, SafeAreaView
 } from 'react-native';
 import * as Animatable from 'react-native-animatable';
-
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 const qaPairs = [
@@ -30,7 +27,6 @@ const qaPairs = [
     keywords: ['notification', 'notifications', 'alerts', 'updates', 'messages', 'news', 'announcements', 'reminders', 'alerts and updates', 'course notifications', 'app notifications', 'new notifications', 'notification center', 'notification screen', 'view notifications', 'check notifications'],
     answer: 'All notifications are displayed in the Notifications screen accessible by taping  the bell icon found just at the top of the all courses page.',
   },
-  
   {
     keywords: ['note', 'notes', 'personal notes', 'my notes', 'note taking', 'write notes', 'create notes', 'add notes', 'note management', 'note organization', 'note app', 'note feature', 'note section', 'note functionality', 'note-taking feature', 'note-taking section', 'note-taking functionality'],
     answer: 'You can access your personal noted by navigating to the my class page where you can find all saved notes',
@@ -47,14 +43,25 @@ const qaPairs = [
     keywords: ['My Downloads', 'my downloads', 'downloaded content', 'downloaded courses', 'downloaded lessons', 'offline content', 'offline courses', 'offline lessons', 'download management', 'download section', 'download feature', 'downloaded materials', 'my downloaded materials'],
     answer: 'You can access your downloaded content in the My Downloads screen, where you can view and manage all your downloaded courses and lessons. This screen can be located by navigating to the my class page via the drawer menu.',
   },
-  
+  {
+    keywords: ['settings', 'app settings', 'preferences', 'configuration', 'app configuration', 'user settings', 'account settings', 'application settings', 'settings menu', 'settings screen', 'settings page', 'settings options', 'settings features'],
+    answer: 'You can access the settings screen by navigating to the my class page via the drawer'
+  },
+  {
+    keywords:['what is the name of this app', 'app name', 'name of the app', 'application name', 'what is this app called', 'app title', 'application title', 'app identification', 'app branding', 'app identity', 'app description', 'app purpose', 'app function', 'app features'],
+    answer:'This app is called ApexLearn, a platform for learning and personal development.',
+  },
+  {
+    keywords:['developer', 'developer name', 'app developer', 'developer information', 'developer details', 'developer contact', 'developer profile', 'developer background', 'developer expertise', 'developer skills', 'developer experience', 'developer portfolio', 'developer team', 'developer group', 'developer company', 'developer organization', 'developer team members', 'developer team information', 'developer team details', 'developer team contact', 'developer team profile', 'developer team background', 'developer team expertise', 'developer team skills', 'developer team experience', 'developer team portfolio'],
+    answer:'This app was developed by Mauricious Frimpong(full stack developer), Nana Poku(front end developer),Osmond(project manager),Henry(Back-end developer),Nana Baffour(Back-end developer),Eugene(UI/UX designer) and Gifty(front end developer).',
+  }
 ];
 
 const suggestionsList = [
   'How do I enroll in a course?',
   'How can I upload content?',
   'Where can I track my progress?',
-  'How to reset my password?',
+  'Tell me something about the app',
   'Contact support',
   'How can I get mentorship?',
 ];
@@ -62,6 +69,14 @@ const suggestionsList = [
 const ChatbotScreen = () => {
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState([]);
+
+  useEffect(() => {
+    const welcomeMsg = {
+      text: "Hey! I am Pixxxel, your AI for assistance in using ApexLearn. How may I help you today?",
+      sender: 'bot',
+    };
+    setMessages([welcomeMsg]);
+  }, []);
 
   const getBotResponse = (userInput) => {
     const cleanedInput = userInput.toLowerCase();
@@ -89,32 +104,7 @@ const ChatbotScreen = () => {
 
     setMessages(prev => [...prev, userMessage, botMessage]);
     setInput('');
-    // Removed: Speech.speak(botReply);
   };
-
-  const renderMessage = ({ item, index }) => (
-    <Animatable.View
-      animation="fadeInUp"
-      duration={400}
-      style={[
-        styles.messageBubble,
-        item.sender === 'user' ? styles.userBubble : styles.botBubble,
-      ]}
-    >
-      <Text style={styles.messageText}>{item.text}</Text>
-      {item.showFeedback && (
-        <View style={styles.feedbackContainer}>
-          <Text style={styles.feedbackText}>Was this helpful?</Text>
-          <TouchableOpacity onPress={() => handleFeedback(index, true)}>
-            <Text style={styles.thumb}>👍</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => handleFeedback(index, false)}>
-            <Text style={styles.thumb}>👎</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-    </Animatable.View>
-  );
 
   return (
     <SafeAreaProvider>
@@ -127,10 +117,36 @@ const ChatbotScreen = () => {
           <FlatList
             data={messages}
             keyExtractor={(_, index) => index.toString()}
-            renderItem={renderMessage}
+            renderItem={({ item, index }) => {
+              const animation = index === 0 ? 'fadeInDownBig' : 'fadeInUp';
+              return (
+                <Animatable.View
+                  animation={animation}
+                  duration={600}
+                  style={[
+                    styles.messageBubble,
+                    item.sender === 'user' ? styles.userBubble : styles.botBubble,
+                  ]}
+                >
+                  <Text style={styles.messageText}>{item.text}</Text>
+                  {item.showFeedback && (
+                    <View style={styles.feedbackContainer}>
+                      <Text style={styles.feedbackText}>Was this helpful?</Text>
+                      <TouchableOpacity onPress={() => handleFeedback(index, true)}>
+                        <Text style={styles.thumb}>👍</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={() => handleFeedback(index, false)}>
+                        <Text style={styles.thumb}>👎</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </Animatable.View>
+              );
+            }}
             contentContainerStyle={styles.messageList}
             keyboardShouldPersistTaps="handled"
           />
+
           <View style={styles.suggestionWrap}>
             {suggestionsList.map((text, i) => (
               <TouchableOpacity key={i} onPress={() => sendMessage(text)} style={styles.suggestion}>
@@ -138,6 +154,7 @@ const ChatbotScreen = () => {
               </TouchableOpacity>
             ))}
           </View>
+
           <View style={styles.inputContainer}>
             <TextInput
               value={input}

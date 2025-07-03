@@ -42,7 +42,7 @@ export const UserProvider = ({ children }) => {
     try {
       const key = `userProfile_${data.email}`;
       await AsyncStorage.setItem(key, JSON.stringify(data));
-      await AsyncStorage.setItem('lastLoggedInEmail', data.email);
+      await AsyncStorage.setItem('lastLoggedInEmail', data.email); // ✅ Ensure email persists
     } catch (err) {
       console.error('Error saving user profile:', err);
     }
@@ -59,7 +59,7 @@ export const UserProvider = ({ children }) => {
   const updateUser = (updatedFields) => {
     const updatedUser = { ...user, ...updatedFields };
     setUser(updatedUser);
-    saveUserData(updatedUser);
+    saveUserData(updatedUser); // ✅ persist changes immediately
   };
 
   const addNotification = (message) => {

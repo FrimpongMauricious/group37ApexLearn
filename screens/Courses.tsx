@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, Image, TextInput, ScrollView,
-         FlatList, TouchableOpacity, Dimensions } from 'react-native';
+         FlatList, TouchableOpacity, Dimensions, Modal, Linking } from 'react-native';
 import React, { useState, useContext, useEffect } from 'react';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -43,6 +43,28 @@ const Courses = ({ navigation }) => {
   const [filteredCourses, setFilteredCourses] = useState(combinedCourses);
   const [filteredTrending, setFilteredTrending] = useState(trending);
   const [filteredRecommended, setFilteredRecommended] = useState(Recommended);
+
+  const [selectedMentor, setSelectedMentor] = useState(null);
+  const [showMentorModal, setShowMentorModal] = useState(false);
+
+  const openMentorModal = (mentor) => {
+    setSelectedMentor(mentor);
+    setShowMentorModal(true);
+  };
+
+  const closeMentorModal = () => {
+    setSelectedMentor(null);
+    setShowMentorModal(false);
+  };
+
+  const handleSendEmail = () => {
+    if (selectedMentor?.email) {
+      const subject = `Mentorship Request - ApexLearn`;
+      const body = `Dear ${selectedMentor.name},\n\nI am interested in mentorship. Kindly consider my proposal.\n\nRegards,\n[Your Name]`;
+      const emailUrl = `mailto:${selectedMentor.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      Linking.openURL(emailUrl);
+    }
+  };
 
   useEffect(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -140,10 +162,10 @@ const Courses = ({ navigation }) => {
                 data={filteredCourses}
                 keyExtractor={(item) => item.id}
                 renderItem={({ item }) => (
-                  <TouchableOpacity style={styles.courseView} onPress={() => navigation.navigate(`${item.id}`)}>
-                    <Image style={styles.courseImage} source={item.image} />
+                  <TouchableOpacity style={styles.courseView} onPress={() => navigation.navigate('Enroll', { newCourse: item })}>
+                    <Image style={styles.courseImage} source={typeof item.image === 'string' ? { uri: item.image } : item.image} />
                     <View style={styles.tutorBioView}>
-                      <Image source={item.tutorBio} style={styles.tutorView} />
+                      <Image source={typeof item.tutorBio === 'string' ? { uri: item.tutorBio } : item.tutorBio} style={styles.tutorView} />
                       <View>
                         <Text style={styles.tutorName}>{item.tutor}</Text>
                         <Text>{item.institution}</Text>
@@ -168,10 +190,10 @@ const Courses = ({ navigation }) => {
                 data={filteredTrending}
                 keyExtractor={(item) => item.id}
                 renderItem={({ item }) => (
-                  <TouchableOpacity style={styles.trendingView} onPress={() => navigation.navigate('Enroll', { courseId: item.id })}>
-                    <Image style={styles.trendingImage} source={item.image} />
+                  <TouchableOpacity style={styles.trendingView} onPress={() => navigation.navigate('Enroll', { newCourse: item })}>
+                    <Image style={styles.trendingImage} source={typeof item.image === 'string' ? { uri: item.image } : item.image} />
                     <View style={styles.tutorBioView}>
-                      <Image source={item.tutorImage} style={styles.tutorView} />
+                      <Image source={typeof item.tutorImage === 'string' ? { uri: item.tutorImage } : item.tutorImage} style={styles.tutorView} />
                       <View>
                         <Text style={styles.tutorName}>{item.tutorName}</Text>
                         <Text>{item.tutorDescription}</Text>
@@ -195,10 +217,10 @@ const Courses = ({ navigation }) => {
                 data={filteredRecommended}
                 keyExtractor={(item) => item.id}
                 renderItem={({ item }) => (
-                  <TouchableOpacity style={styles.trendingView} onPress={() => navigation.navigate('Enroll', { courseId: item.id })}>
-                    <Image style={styles.trendingImage} source={item.image} />
+                  <TouchableOpacity style={styles.trendingView} onPress={() => navigation.navigate('Enroll', { newCourse: item })}>
+                    <Image style={styles.trendingImage} source={typeof item.image === 'string' ? { uri: item.image } : item.image} />
                     <View style={styles.tutorBioView}>
-                      <Image source={item.tutorImage} style={styles.tutorView} />
+                      <Image source={typeof item.tutorImage === 'string' ? { uri: item.tutorImage } : item.tutorImage} style={styles.tutorView} />
                       <View>
                         <Text style={styles.tutorName}>{item.tutorName}</Text>
                         <Text>{item.tutorDescription}</Text>
@@ -221,9 +243,9 @@ const Courses = ({ navigation }) => {
               data={mentors}
               keyExtractor={(item) => item.name}
               renderItem={({ item }) => (
-                <TouchableOpacity style={styles.mentors}>
+                <TouchableOpacity style={styles.mentors} onPress={() => openMentorModal(item)}>
                   <View style={{ marginRight: 10 }}>
-                    <Image source={item.image} style={styles.mentorImage} />
+                    <Image source={typeof item.image === 'string' ? { uri: item.image } : item.image} style={styles.mentorImage} />
                     <Text style={styles.menorName}>{item.name}</Text>
                   </View>
                 </TouchableOpacity>
@@ -232,19 +254,47 @@ const Courses = ({ navigation }) => {
           </View>
         </ScrollView>
 
-        {/* Floating Chat Icon */}
         <TouchableOpacity
           onPress={() => navigation.navigate('ChatBot')}
           style={styles.chatIcon}
         >
           <Icon name="robot" size={24} color="white" />
         </TouchableOpacity>
+
+        {selectedMentor && (
+          <Modal
+            visible={showMentorModal}
+            animationType="slide"
+            transparent
+            onRequestClose={closeMentorModal}
+          >
+            <View style={modalStyles.overlay}>
+              <View style={modalStyles.container}>
+                <Image source={typeof selectedMentor.image === 'string' ? { uri: selectedMentor.image } : selectedMentor.image} style={modalStyles.image} />
+                <Text style={modalStyles.name}>{selectedMentor.name}</Text>
+                <Text style={modalStyles.detail}>   Expertise: {selectedMentor.expertise}</Text>
+                <Text style={modalStyles.detail}>   Workplace: {selectedMentor.workplace}</Text>
+                <Text style={modalStyles.detail}>   {selectedMentor.phone}</Text>
+                <Text style={modalStyles.detail}>   {selectedMentor.email}</Text>
+
+                <TouchableOpacity style={modalStyles.button} onPress={handleSendEmail}>
+                  <Text style={modalStyles.buttonText}>Send Mentorship Proposal</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity onPress={closeMentorModal}>
+                  <Text style={{ color: 'red', marginTop: 10 }}>Close</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
+        )}
       </View>
     </SafeAreaView>
   );
 };
 
 export default Courses;
+
 
 const styles = StyleSheet.create({
   container: { marginTop: 30, backgroundColor: '#e9f5f9', flex: 1 },
@@ -315,8 +365,6 @@ const styles = StyleSheet.create({
   mentors: { flexDirection: 'row', marginHorizontal: 20, borderRadius: 20, justifyContent: 'center' },
   mentorImage: { height: 100, width: 100, borderRadius: 50, marginBottom: 6 },
   menorName: { fontWeight: '600', fontSize: 16, marginBottom: 10, textAlign: 'center' },
-
-  // Floating Chat Icon
   chatIcon: {
     position: 'absolute',
     bottom: 20,
@@ -329,5 +377,47 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     elevation: 5,
     zIndex: 10,
+  },
+});
+
+const modalStyles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.4)',
+  },
+  container: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    alignItems: 'center',
+  },
+  image: {
+    height: 100,
+    width: 100,
+    borderRadius: 50,
+    marginBottom: 10,
+  },
+  name: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 6,
+  },
+  detail: {
+    fontSize: 14,
+    marginVertical: 2,
+    textAlign: 'center',
+  },
+  button: {
+    backgroundColor: '#4A90E2',
+    paddingVertical: 10,
+    paddingHorizontal: 25,
+    borderRadius: 10,
+    marginTop: 12,
+  },
+  buttonText: {
+    color: 'white',
+    fontWeight: '600',
   },
 });

@@ -3,7 +3,7 @@ import React, { useContext } from 'react';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { classes } from './AvailableCourses';
-import { UserContext } from '../context/UserContext'; // ✅ context
+import { UserContext } from '../context/UserContext'; 
 
 const MyClass = ({ navigation }) => {
   const { user } = useContext(UserContext); //  get user
@@ -19,7 +19,7 @@ const MyClass = ({ navigation }) => {
               source={
                 user.profilePicture
                   ? { uri: user.profilePicture }
-                  : require('../assets/background2.jpg')
+                  : require('../assets/apexLearn2.png')
               }
             />
           </TouchableOpacity>

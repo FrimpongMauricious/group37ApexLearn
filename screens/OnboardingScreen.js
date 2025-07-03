@@ -20,7 +20,7 @@ const slides = [
     title: 'Welcome to ApexLearn',
     text: 'Learn from the best tutors worldwide.',
     image: require('../assets/apexLearn2.png'),
-    colors: ['#E0F2FF', '#FFFFFF'],
+    colors: ['#B2DFFF', '#FFFFFF'],
   },
   {
     key: '2',
@@ -148,14 +148,19 @@ const styles = StyleSheet.create({
     backgroundColor: '#007AFF',
     paddingHorizontal: 40,
     paddingVertical: 14,
-    borderRadius: 30,
+    borderRadius: 12,
     overflow: 'hidden',
+    width: 300,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 5,
   },
   buttonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: 'bold',
     zIndex: 1,
+    
   },
   shimmer: {
     position: 'absolute',

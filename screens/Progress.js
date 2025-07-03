@@ -1,4 +1,3 @@
-// screens/ProgressScreen.js
 import React, { useContext } from 'react';
 import {
   View,
@@ -9,6 +8,7 @@ import {
   SafeAreaView,
   TouchableOpacity,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { CourseContext } from '../context/CourseContext';
 import * as Progress from 'react-native-progress';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -17,6 +17,7 @@ const defaultImage = require('../assets/apexLearn2.png');
 
 const ProgressScreen = () => {
   const { enrolledCourses } = useContext(CourseContext);
+  const navigation = useNavigation();
 
   const introCourse = {
     id: 'intro-course',
@@ -24,6 +25,7 @@ const ProgressScreen = () => {
     about: 'Get started with ApexLearn and learn how to use our app effectively.',
     image: defaultImage,
     progress: 74,
+    videoUrl: 'https://www.youtube.com/shorts/QrEe2CUj1lA',
   };
 
   const allCoursesToShow = [introCourse, ...enrolledCourses.filter(course => course.id !== 'intro-course')];
@@ -35,7 +37,19 @@ const ProgressScreen = () => {
         : item.image || defaultImage;
 
     return (
-      <TouchableOpacity style={styles.courseItem}>
+      <TouchableOpacity
+        style={styles.courseItem}
+        onPress={() =>
+        {
+          console.log('Navigating with video URL:', item?.videoUrl);
+          
+          navigation.navigate('CourseVideo', {
+            course: item,
+            videoUrl: item?.videoUrl || introCourse.videoUrl,
+          })
+        }
+        }
+      >
         <Image source={source} style={styles.courseImage} />
         <View style={styles.courseInfo}>
           <Text style={styles.courseName}>{item.name}</Text>
@@ -63,7 +77,9 @@ const ProgressScreen = () => {
       <SafeAreaView style={styles.container}>
         <FlatList
           data={allCoursesToShow}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(item, index) =>
+            item?.id ? item.id.toString() : `fallback-${index}`
+          }
           renderItem={renderCourseItem}
           contentContainerStyle={styles.list}
           ListEmptyComponent={() => (

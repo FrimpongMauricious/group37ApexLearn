@@ -30,7 +30,9 @@ const AI = ({ navigation }) => {
     const handleEnroll = () => {
       enrollInCourse(courseData);
       addNotification(`You enrolled in ${courseData.name}`);
-      navigation.navigate('Progress');
+      // navigation.navigate('Progress');
+      navigation.navigate('Enroll', { newCourse: courseData });
+
     };
   
     const handleWish = () => {
