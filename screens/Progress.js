@@ -39,16 +39,16 @@ const ProgressScreen = () => {
     return (
       <TouchableOpacity
         style={styles.courseItem}
-        onPress={() =>
-        {
+        onPress={() => {
           console.log('Navigating with video URL:', item?.videoUrl);
-          
-          navigation.navigate('CourseVideo', {
-            course: item,
-            videoUrl: item?.videoUrl || introCourse.videoUrl,
-          })
-        }
-        }
+          navigation.navigate('CourseVideoStack', {
+            screen: 'CourseVideo',
+            params: {
+              course: item,
+              videoUrl: item?.videoUrl || introCourse.videoUrl,
+            },
+          });
+        }}
       >
         <Image source={source} style={styles.courseImage} />
         <View style={styles.courseInfo}>

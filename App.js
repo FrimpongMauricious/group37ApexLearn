@@ -31,6 +31,9 @@ import { UserProvider } from './context/UserContext';
 import { NotificationProvider } from './context/NotificationContext';
 import CourseVideoScreen from './screens/CourseVideoSceen';
 import CourseDetailDynamicScreen from './screens/CourseDetailDynamicScreen';
+import QuizCenter from './screens/QuizCenter';
+import QuizCenterScreen from './screens/QuizCenter';
+import QuizScreen from './screens/QuizScreen';
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -54,14 +57,36 @@ function CoursesStack() {
     </Stack.Navigator>
   );
 }
-function MyProgressStack(){
-  return(
-  <Stack.Navigator initialRouteName='Progress' screenOptions={{headerShown:false}}>
-    <Stack.Screen name='Progress' component={Progress}/>
-    <Stack.Screen name='CourseVideo' component={CourseVideoScreen}/>
+// function MyProgressStack(){
+//   return(
+//   <Stack.Navigator initialRouteName='Progress' screenOptions={{headerShown:false}}>
+//     <Stack.Screen name='Progress' component={Progress}/>
+//     <Stack.Screen name='CourseVideo' component={CourseVideoScreen}/>
+   
 
 
-  </Stack.Navigator>
+//   </Stack.Navigator>
+//   );
+//}
+function CourseVideoStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="CourseVideo">
+      <Stack.Screen name="CourseVideo" component={CourseVideoScreen} />
+      <Stack.Screen name="QuizCenter" component={QuizCenterScreen} />
+      <Stack.Screen name="QuizScreen" component={QuizScreen} />
+    </Stack.Navigator>
+  );
+}
+function MyProgressStack() {
+  return (
+    <Stack.Navigator initialRouteName="Progress" screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="Progress" component={Progress} />
+      <Stack.Screen
+        name="CourseVideoStack"
+        component={CourseVideoStack}
+        options={{ headerShown: false }}
+      />
+    </Stack.Navigator>
   );
 }
 

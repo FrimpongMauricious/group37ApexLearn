@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import { Video } from 'expo-av';
-import { useRoute } from '@react-navigation/native';
+import { useRoute, useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Progress from 'react-native-progress';
 import { CourseContext } from '../context/CourseContext';
@@ -38,6 +38,7 @@ const CourseVideoScreen = () => {
   const playerRef = useRef();
   const [completedLessons, setCompletedLessons] = useState([]);
   const [showConfetti, setShowConfetti] = useState(false);
+  const navigation = useNavigation();
   const key = `lessonStatus_${id}`;
   const progress = completedLessons.length / lessons.length;
 
@@ -166,9 +167,18 @@ const CourseVideoScreen = () => {
       ))}
 
       {progress === 1 && (
-        <TouchableOpacity style={styles.claimButton} onPress={handleDownloadCertificate}>
-          <Text style={styles.buttonText}>🎉 Claim Certificate</Text>
-        </TouchableOpacity>
+        <>
+          <TouchableOpacity style={styles.claimButton} onPress={handleDownloadCertificate}>
+            <Text style={styles.buttonText}>🎉 Claim Certificate</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.claimButton, { backgroundColor: '#4CAF50', marginTop: 12 }]}
+            onPress={() => navigation.navigate('QuizCenter', { course })}
+          >
+            <Text style={styles.buttonText}>📝 Take Quiz</Text>
+          </TouchableOpacity>
+        </>
       )}
     </ScrollView>
   );

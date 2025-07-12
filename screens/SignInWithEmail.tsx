@@ -1,16 +1,20 @@
-// SignInWithEmail.js
-import { ImageBackground, StyleSheet, Text, TextInput, TouchableOpacity, View, Alert, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import {
+  StyleSheet, Text, TextInput, TouchableOpacity, View,
+  Alert, KeyboardAvoidingView, Platform, TouchableWithoutFeedback,
+  Keyboard, SafeAreaView
+} from 'react-native';
 import React, { useState, useContext } from 'react';
 import Icon from 'react-native-vector-icons/FontAwesome5';
-import * as Animatable from 'react-native-animatable';
 import { loginUser } from '../firebase/auth';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { UserContext } from '../context/UserContext';
+import * as Animatable from 'react-native-animatable';
 
 const SignInWithEmail = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [activeTab, setActiveTab] = useState('login');
+  const [rememberMe, setRememberMe] = useState(false);
 
   const { loadUserData } = useContext(UserContext);
 
@@ -35,57 +39,97 @@ const SignInWithEmail = ({ navigation }) => {
   const signUp = () => navigation.navigate("SignUp");
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <SafeAreaView style={{ flex: 1 }}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={{ flex: 1 }}
-        >
-          <ImageBackground style={styles.backgroundImage} source={require('../assets/background3.jpg')}>
-            <View style={styles.container}>
-              <Animatable.View animation="fadeInUp" duration={800} delay={200}>
-                <TextInput
-                  style={styles.input}
-                  placeholder='Email'
-                  placeholderTextColor='black'
-                  value={email}
-                  onChangeText={setEmail}
-                  keyboardType='email-address'
-                />
-                <View style={styles.passwordRow}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 30}
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <Animatable.View
+            animation="fadeInUp"
+            duration={700}
+            style={styles.container}
+          >
+            {/* Top Section */}
+            <View style={styles.topSection}>
+              <Text style={styles.welcome}>Welcome to</Text>
+              <Text style={styles.appName}>ApexLearn 👋</Text>
+              <Text style={styles.welcomeText}>Sign in to continue your learning journey</Text>
+            </View>
+
+            {/* Bottom Section */}
+            <View style={styles.formSection}>
+              {/* Tabs */}
+              <View style={styles.tabContainer}>
+                <TouchableOpacity
+                  style={[styles.tab, activeTab === 'login' && styles.activeTab]}
+                  onPress={() => setActiveTab('login')}
+                >
+                  <Text style={[styles.tabText, activeTab === 'login' && styles.activeTabText]}>Login</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.tab, activeTab === 'register' && styles.activeTab]}
+                  onPress={signUp}
+                >
+                  <Text style={[styles.tabText, activeTab === 'register' && styles.activeTabText]}>Register</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Inputs */}
+              <View style={styles.inputWrapper}>
+                <View style={styles.inputContainer}>
+                  <Icon name="envelope" size={18} color="#888" style={styles.inputIcon} />
                   <TextInput
-                    style={[styles.passwordInput, { flex: 1 }]}
-                    placeholder='Input Password'
-                    placeholderTextColor='black'
+                    style={styles.input}
+                    placeholder='Email Address'
+                    placeholderTextColor="#999"
+                    value={email}
+                    onChangeText={setEmail}
+                    keyboardType='email-address'
+                  />
+                </View>
+
+                <View style={styles.inputContainer}>
+                  <Icon name="lock" size={18} color="#888" style={styles.inputIcon} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder='Password'
+                    placeholderTextColor="#999"
                     secureTextEntry={!showPassword}
                     value={password}
                     onChangeText={setPassword}
-                    keyboardType='default'
                   />
-                  <Icon
-                    name={showPassword ? 'eye-slash' : 'eye'}
-                    size={22}
-                    color='black'
-                    onPress={() => setShowPassword(!showPassword)}
-                    style={{ paddingHorizontal: 10 }}
-                  />
+                  <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                    <Icon name={showPassword ? 'eye-slash' : 'eye'} size={18} color="#888" />
+                  </TouchableOpacity>
                 </View>
-              </Animatable.View>
-            </View>
+              </View>
 
-            <View style={styles.bottomContainer}>
-              <TouchableOpacity style={styles.touch} onPress={handleLogin}>
-                <Text style={styles.tuchText}>Log in</Text>
-              </TouchableOpacity>
+              {/* Remember Me & Forgot Password */}
+              <View style={styles.rememberRow}>
+                <TouchableOpacity
+                  onPress={() => setRememberMe(!rememberMe)}
+                  style={[
+                    styles.checkboxPlaceholder,
+                    rememberMe && { backgroundColor: '#5c8d73', borderColor: '#5c8d73' },
+                  ]}
+                />
+                <Text style={styles.rememberText}>Remember me</Text>
+                <TouchableOpacity style={{ marginLeft: 'auto' }}>
+                  <Text style={styles.forgotText}>Forgot Password?</Text>
+                </TouchableOpacity>
+              </View>
 
-              <TouchableOpacity style={styles.touch2} onPress={signUp}>
-                <Text style={styles.tuchText2}>Don't have an account? Create one</Text>
+              {/* Login Button */}
+              <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+                <Text style={styles.loginButtonText}>Login</Text>
               </TouchableOpacity>
             </View>
-          </ImageBackground>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
-    </TouchableWithoutFeedback>
+          </Animatable.View>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
@@ -93,75 +137,115 @@ export default SignInWithEmail;
 
 const styles = StyleSheet.create({
   container: {
-    flexGrow: 1,
     flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 20,
+    backgroundColor: '#fff',
   },
-  passwordInput: {
-    height: 55,
-    borderRadius: 10,
+  topSection: {
+    flex: 1,
+    backgroundColor: '#000',
+    paddingHorizontal: 25,
+    paddingTop: 60,
+    justifyContent: 'center',
+  },
+  welcome: {
+    color: '#fff',
     fontSize: 18,
     fontWeight: '500',
-    textAlign: 'center',
-    color: 'black',
-    backgroundColor: '#e9f5f9',
   },
-  passwordRow: {
+  appName: {
+    color: '#fff',
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginTop: 5,
+  },
+  welcomeText: {
+    color: '#aaa',
+    fontSize: 14,
+    marginTop: 8,
+  },
+  formSection: {
+    flex: 2,
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 120, // ⬅ this creates the scoop!
+    paddingHorizontal: 25,
+    paddingTop: 30,
+    marginTop: -25, // ⬆ pull white section into the black
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#eee',
+    borderRadius: 30,
+    marginBottom: 30,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 30,
+    alignItems: 'center',
+  },
+  activeTab: {
+    backgroundColor: '#000',
+  },
+  tabText: {
+    color: '#999',
+    fontWeight: 'bold',
+  },
+  activeTabText: {
+    color: '#fff',
+  },
+  inputWrapper: {
+    gap: 15,
+  },
+  inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderColor: 'grey',
-    borderWidth: 1,
-    borderRadius: 10,
-    backgroundColor: '#e9f5f9',
-    width: '100%',
-    marginBottom: 30,
+    backgroundColor: '#f1f1f1',
+    borderRadius: 14,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
   },
   input: {
-    borderRadius: 10,
-    borderWidth: 2,
-    width: '100%',
-    height: 50,
-    marginBottom: 30,
-    textAlign: 'center',
-    borderColor: 'white',
-    fontWeight: 'bold',
-    color: 'black',
-    fontSize: 18,
-    backgroundColor: '#e9f5f9',
-  },
-  touch: {
-    backgroundColor: '#1e7898',
-    borderRadius: 8,
-    width: '100%',
-    height: 50,
-    elevation: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 15,
-  },
-  tuchText: {
-    color: 'white',
-    fontWeight: 'bold',
-    paddingHorizontal: 20,
-  },
-  tuchText2: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 15,
-  },
-  touch2: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  backgroundImage: {
     flex: 1,
-    resizeMode: 'cover',
+    fontSize: 16,
+    color: '#000',
+    marginLeft: 10,
   },
-  bottomContainer: {
-    position: 'absolute',
-    bottom: 30,
-    left: 20,
-    right: 20,
+  inputIcon: {
+    marginRight: 5,
+  },
+  rememberRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 20,
+  },
+  checkboxPlaceholder: {
+    width: 18,
+    height: 18,
+    borderRadius: 3,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    marginRight: 8,
+  },
+  rememberText: {
+    color: '#555',
+    fontSize: 13,
+  },
+  forgotText: {
+    color: '#1e7898',
+    fontSize: 13,
+  },
+  loginButton: {
+    backgroundColor: '#5c8d73',
+    borderRadius: 18,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginTop: 20,
+    elevation: 3,
+  },
+  loginButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
 });
