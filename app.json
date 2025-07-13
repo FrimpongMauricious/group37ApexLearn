@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "awesome04",
-    "slug": "awesome04",
+    "name": "ApexLearn",
+    "slug": "ApexLearn",
     "version": "1.0.0",
     "scheme": "awesome04",                     // ✅ ADD THIS LINE
     "orientation": "portrait",

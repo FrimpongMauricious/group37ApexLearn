@@ -169,14 +169,14 @@ const CourseVideoScreen = () => {
       {progress === 1 && (
         <>
           <TouchableOpacity style={styles.claimButton} onPress={handleDownloadCertificate}>
-            <Text style={styles.buttonText}>🎉 Claim Certificate</Text>
+            <Text style={styles.buttonText}> Claim Certificate</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.claimButton, { backgroundColor: '#4CAF50', marginTop: 12 }]}
+            style={[styles.claimButton, { backgroundColor: '#0b392c', marginTop: 12 }]}
             onPress={() => navigation.navigate('QuizCenter', { course })}
           >
-            <Text style={styles.buttonText}>📝 Take Quiz</Text>
+            <Text style={styles.buttonText}> Take Quiz</Text>
           </TouchableOpacity>
         </>
       )}
@@ -204,12 +204,14 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   claimButton: {
-    backgroundColor: '#2196F3',
+    backgroundColor: '#167258',
     padding: 14,
     borderRadius: 8,
     alignItems: 'center',
     marginTop: 20,
     marginBottom: 30,
+    height: 55,
+    borderRadius: 17
   },
   buttonText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
 });

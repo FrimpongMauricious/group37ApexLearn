@@ -4,12 +4,15 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
+  ImageBackground,
+  Image,
   Alert,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { QuizBank } from '../screens/QuizBank'; // import the QuizBank
-import { quizTitleMap } from '../utils/quizMap'; // import the map
+import { QuizBank } from '../screens/QuizBank';
+import { quizTitleMap } from '../utils/quizMap';
+import Icon from 'react-native-vector-icons/Feather';
 
 const QuizCenterScreen = () => {
   const navigation = useNavigation();
@@ -31,7 +34,7 @@ const QuizCenterScreen = () => {
       return;
     }
 
-    const courseKey = quizTitleMap[course.id]; // Map ID to correct QuizBank key
+    const courseKey = quizTitleMap[course.id];
 
     if (!courseKey || !QuizBank[courseKey]) {
       Alert.alert('Unavailable', 'No quiz available for this course.');
@@ -59,48 +62,69 @@ const QuizCenterScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>📘 {course?.name}</Text>
-      <Text style={styles.info}>You're about to take a quiz for this course.</Text>
+    <ImageBackground
+      source={require('../assets/wavy.png')} // add your wave image here
+      style={styles.background}
+      resizeMode="cover"
+    >
+      <View style={styles.overlay}>
+        <Image source={require('../assets/apexLearn2.png')} style={styles.logo} />
+        <Text style={styles.title}>Start Quiz</Text>
+        <Text style={styles.subtitle}> {course?.name}</Text>
 
-      <TouchableOpacity style={styles.button} onPress={handleStartQuiz}>
-        <Text style={styles.buttonText}>Start Quiz</Text>
-      </TouchableOpacity>
-    </View>
+        <TouchableOpacity style={styles.button} onPress={handleStartQuiz}>
+          <Text style={styles.buttonText}>Start</Text>
+          <Icon name="chevron-right" size={20} color="#fff" style={{ marginLeft: 10 }} />
+        </TouchableOpacity>
+      </View>
+    </ImageBackground>
   );
 };
 
 export default QuizCenterScreen;
 
 const styles = StyleSheet.create({
-  container: {
+  background: {
     flex: 1,
-    backgroundColor: '#E8F0FF',
     justifyContent: 'center',
-    padding: 20,
+    alignItems: 'center',
   },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 12,
-    textAlign: 'center',
+  overlay: {
+    backgroundColor: 'rgba(0,0,10,0.1)',
+    padding: 30,
+    borderRadius: 30,
+    alignItems: 'center',
   },
-  info: {
-    fontSize: 16,
-    color: '#555',
-    textAlign: 'center',
+  logo: {
+    height: 120,
+    resizeMode: 'contain',
     marginBottom: 30,
   },
+  title: {
+    fontSize: 36,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 10,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#eee',
+    marginBottom: 30,
+    textAlign: 'center',
+  },
   button: {
-    backgroundColor: '#4CAF50',
-    padding: 16,
-    borderRadius: 10,
+    flexDirection: 'row',
+    backgroundColor: '#0b392c',
+    paddingVertical: 15,
+    paddingHorizontal: 40,
+    borderRadius: 20,
     alignItems: 'center',
-    elevation: 2,
+    justifyContent: 'center',
+    width: '60%',
   },
   buttonText: {
+    fontSize: 18,
     color: '#fff',
     fontWeight: 'bold',
-    fontSize: 16,
   },
 });
