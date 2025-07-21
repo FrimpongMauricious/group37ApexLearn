@@ -40,7 +40,6 @@ const ProgressScreen = () => {
       <TouchableOpacity
         style={styles.courseItem}
         onPress={() => {
-          console.log('Navigating with video URL:', item?.videoUrl);
           navigation.navigate('CourseVideoStack', {
             screen: 'CourseVideo',
             params: {
@@ -90,6 +89,13 @@ const ProgressScreen = () => {
             </View>
           )}
         />
+
+        <TouchableOpacity
+          style={styles.floatingButton}
+          onPress={() => navigation.navigate('LearnSchedulerScreen')}
+        >
+          <Text style={styles.floatingButtonText}>Schedule Learning</Text>
+        </TouchableOpacity>
       </SafeAreaView>
     </SafeAreaProvider>
   );
@@ -147,5 +153,24 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
     color: '#999',
+  },
+  floatingButton: {
+    position: 'absolute',
+    right: 20,
+    bottom: 30,
+    backgroundColor: '#28a745',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 30,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+  },
+  floatingButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 14,
   },
 });

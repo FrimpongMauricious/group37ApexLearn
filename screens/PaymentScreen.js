@@ -13,12 +13,15 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { PayWithFlutterwave } from 'flutterwave-react-native';
 import { CourseContext } from '../context/CourseContext';
 import { NotificationContext } from '../context/NotificationContext';
+import * as Notifications from 'expo-notifications';
+import * as Device from 'expo-device';
 
 const PaymentScreen = ({ route, navigation }) => {
   const [newCourse, setNewCourse] = useState(null);
-
-  const { enrollInCourse, removeFromWishlist } = useContext(CourseContext);
+  const { enrollInCourse, removeFromWishlist, addCourse } = useContext(CourseContext);
   const { addNotification } = useContext(NotificationContext);
+
+  const type = route?.params?.type || 'enroll';
 
   useEffect(() => {
     if (route?.params?.newCourse) {
@@ -37,6 +40,50 @@ const PaymentScreen = ({ route, navigation }) => {
   };
 
   const dynamicAmount = extractAmount(newCourse?.amount || '');
+
+  const sendEnrollmentNotification = async (courseName) => {
+    try {
+      if (Device.isDevice) {
+        const { status } = await Notifications.getPermissionsAsync();
+        if (status !== 'granted') {
+          await Notifications.requestPermissionsAsync();
+        }
+      }
+
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: '🎓 Enrolled Successfully!',
+          body: `You've enrolled in "${courseName}". Start learning now!`,
+          sound: 'default',
+        },
+        trigger: { seconds: 1 },
+      });
+    } catch (error) {
+      console.error('Error sending enrollment notification:', error);
+    }
+  };
+
+  const sendUploadNotification = async (courseName) => {
+    try {
+      if (Device.isDevice) {
+        const { status } = await Notifications.getPermissionsAsync();
+        if (status !== 'granted') {
+          await Notifications.requestPermissionsAsync();
+        }
+      }
+
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: '🚀 Course Uploaded!',
+          body: `Your course "${courseName}" is now live on ApexLearn.`,
+          sound: 'default',
+        },
+        trigger: { seconds: 1 },
+      });
+    } catch (error) {
+      console.error('Error sending upload notification:', error);
+    }
+  };
 
   const handleOnRedirect = (data) => {
     console.log('Payment response:', data);
@@ -62,12 +109,19 @@ const PaymentScreen = ({ route, navigation }) => {
           videoUrl: newCourse.videoUrl || null,
         };
 
-        enrollInCourse(courseWithId);
-        addNotification(`You successfully enrolled in ${courseWithId.name}`);
-        removeFromWishlist(courseWithId.id);
-      }
+        if (type === 'enroll') {
+          enrollInCourse(courseWithId);
+          addNotification(`You successfully enrolled in ${courseWithId.name}`);
+          sendEnrollmentNotification(courseWithId.name);
+          removeFromWishlist(courseWithId.id);
+        } else if (type === 'upload') {
+          addCourse(courseWithId);
+          addNotification(`You uploaded your course: ${courseWithId.name}`);
+          sendUploadNotification(courseWithId.name);
+        }
 
-      navigation.navigate('Available Courses', { screen: 'AllCourses' });
+        navigation.navigate('Available Courses', { screen: 'AllCourses' });
+      }
     } else {
       Alert.alert('Failed', 'Payment was cancelled or failed.');
     }

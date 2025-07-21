@@ -34,6 +34,7 @@ import CourseDetailDynamicScreen from './screens/CourseDetailDynamicScreen';
 import QuizCenter from './screens/QuizCenter';
 import QuizCenterScreen from './screens/QuizCenter';
 import QuizScreen from './screens/QuizScreen';
+import LearnSchedulerScreen from './screens/LearnSchedulerScreen';
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -86,6 +87,7 @@ function MyProgressStack() {
         component={CourseVideoStack}
         options={{ headerShown: false }}
       />
+      <Stack.Screen name="LearnSchedulerScreen" component={LearnSchedulerScreen} />
     </Stack.Navigator>
   );
 }
@@ -99,6 +101,10 @@ function MyClassStack() {
       <Stack.Screen name="WishList" component={WishListStack} />
       <Stack.Screen name="Download" component={Download} />
       <Stack.Screen name="Profile" component={ProfileScreen} />
+      <Stack.Screen name="Logout" component={SignInWithEmail}/>
+      <Stack.Screen name=" Available Courses" component={CoursesStack} />
+      <Stack.Screen name="Bot" component={ChatbotScreen} />
+      <Stack.Screen name="Help" component={Licencse} />
     </Stack.Navigator>
   );
 }
@@ -117,6 +123,7 @@ function PaymentStack() {
     <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Payment">
       <Stack.Screen name="Courses" component={CoursesStack} />
       <Stack.Screen name="Payment" component={PaymentScreen} />
+      
       {/* <Stack.screen name='TrendingOrRecommended' component={CourseDetailDynamicScreen}/> */}
     </Stack.Navigator>
   );
@@ -140,7 +147,7 @@ function LoggedInDrawerNavigator() {
       screenOptions={{ headerShown: false, drawerStyle: { width: 300 } }}
     >
       <Drawer.Screen name="Available Courses" component={CoursesStack} />
-      <Drawer.Screen name="My Class" component={MyClassStack} />
+      <Drawer.Screen name="My Profile" component={MyClassStack} />
       <Drawer.Screen name="Create a Course" component={CourseCreationStack} />
     </Drawer.Navigator>
   );
@@ -149,7 +156,7 @@ function LoggedInDrawerNavigator() {
 function PreLoginDrawerNavigator() {
   return (
     <Drawer.Navigator
-      initialRouteName="Log out"
+      initialRouteName="Sign In"
       screenOptions={{ headerShown: false, drawerStyle: { width: 300 } }}
     >
       <Drawer.Screen name="SignUp" component={SignUp} />

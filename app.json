@@ -3,7 +3,7 @@
     "name": "ApexLearn",
     "slug": "ApexLearn",
     "version": "1.0.0",
-    "scheme": "awesome04",                     // ✅ ADD THIS LINE
+    "scheme": "awesome04",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -27,7 +27,9 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-notifications",
+      "expo-localization"
     ]
   }
 }

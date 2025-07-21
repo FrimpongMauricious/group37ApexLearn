@@ -1,3 +1,4 @@
+// CourseVideoScreen.js
 import React, { useRef, useState, useEffect, useContext } from 'react';
 import {
   View,
@@ -19,6 +20,8 @@ import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import { Image as RNImage } from 'react-native';
 import ConfettiCannon from 'react-native-confetti-cannon';
+import * as Notifications from 'expo-notifications';
+import * as Device from 'expo-device';
 
 const CourseVideoScreen = () => {
   const route = useRoute();
@@ -41,25 +44,20 @@ const CourseVideoScreen = () => {
   const navigation = useNavigation();
   const key = `lessonStatus_${id}`;
   const progress = completedLessons.length / lessons.length;
+  const [pointsAwarded, setPointsAwarded] = useState(false);
 
   useEffect(() => {
     const extractVideoId = (url) => {
       if (!url) return null;
-
       const finalUrl = typeof url === 'object' && url?.uri ? url.uri : url;
-
       const shortRegex = /shorts\/([a-zA-Z0-9_-]+)/;
       const regularRegex = /(?:v=|\/)([a-zA-Z0-9_-]{11})/;
-
       const matchShort = finalUrl.match(shortRegex);
       if (matchShort) return matchShort[1];
-
       const matchRegular = finalUrl.match(regularRegex);
       if (matchRegular) return matchRegular[1];
-
       return null;
     };
-
     setVideoId(extractVideoId(videoUrl));
   }, [videoUrl]);
 
@@ -77,6 +75,62 @@ const CourseVideoScreen = () => {
     loadCompleted();
   }, []);
 
+  useEffect(() => {
+    const awardPointsAndNotify = async () => {
+      if (progress === 1 && !pointsAwarded && user.email) {
+        const awardKey = `courseAwarded_${id}_${user.email}`;
+        const notifyKey = `courseCompletedNotified_${id}_${user.email}`;
+        const alreadyAwarded = await AsyncStorage.getItem(awardKey);
+        const alreadyNotified = await AsyncStorage.getItem(notifyKey);
+
+        if (!alreadyAwarded) {
+          const pointsKey = `userPoints_${user.email}`;
+          try {
+            const stored = await AsyncStorage.getItem(pointsKey);
+            const existing = stored ? parseInt(stored) : 0;
+            const total = existing + 700;
+            await AsyncStorage.setItem(pointsKey, total.toString());
+            await AsyncStorage.setItem(awardKey, 'true');
+            setPointsAwarded(true);
+          } catch (err) {
+            console.error('Error awarding course points:', err);
+          }
+        } else {
+          setPointsAwarded(true);
+        }
+
+        if (!alreadyNotified) {
+          await sendCompletionNotification();
+          await AsyncStorage.setItem(notifyKey, 'true');
+        }
+      }
+    };
+
+    awardPointsAndNotify();
+  }, [progress]);
+
+  const sendCompletionNotification = async () => {
+    try {
+      if (Device.isDevice) {
+        const { status } = await Notifications.getPermissionsAsync();
+        if (status !== 'granted') {
+          await Notifications.requestPermissionsAsync();
+        }
+      }
+
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: '🎉 Course Completed!',
+          body: `You've successfully completed "${name}" on ApexLearn.`,
+          sound: 'default',
+        },
+        trigger: { seconds: 1 },
+      });
+    } catch (err) {
+      console.error('Failed to send completion notification:', err);
+    }
+  };
+
   const toggleLesson = async (lesson) => {
     let updated = [...completedLessons];
     if (updated.includes(lesson)) {
@@ -91,8 +145,7 @@ const CourseVideoScreen = () => {
 
   const handleDownloadCertificate = async () => {
     try {
-      setShowConfetti(true); // trigger confetti
-
+      setShowConfetti(true);
       setTimeout(async () => {
         const logoUrl = RNImage.resolveAssetSource(require('../assets/apexLearn2.png')).uri;
         const html = `
@@ -105,10 +158,24 @@ const CourseVideoScreen = () => {
           <p>has successfully completed the course</p><div class="course">${name}</div>
           <p>on ${new Date().toDateString()}</p><div class="footer">Issued by ApexLearn</div>
           </div></body></html>`;
+
         const { uri } = await Print.printToFileAsync({ html });
         await Sharing.shareAsync(uri);
+
+        const certKey = `certificates_${user.email}`;
+        const existing = await AsyncStorage.getItem(certKey);
+        const parsed = existing ? JSON.parse(existing) : [];
+
+        parsed.push({
+          courseName: name,
+          username: user.username,
+          date: new Date().toDateString(),
+          pdfUri: uri,
+        });
+
+        await AsyncStorage.setItem(certKey, JSON.stringify(parsed));
         setShowConfetti(false);
-      }, 4000); // 4 seconds delay to let confetti finish
+      }, 4000);
     } catch (err) {
       console.error(err);
       Alert.alert("Error", "Could not generate certificate.");
@@ -119,7 +186,6 @@ const CourseVideoScreen = () => {
   return (
     <ScrollView style={styles.container}>
       {showConfetti && <ConfettiCannon count={120} origin={{ x: 200, y: -20 }} fadeOut />}
-
       <Text style={styles.courseName}>{name}</Text>
 
       {videoId ? (
@@ -211,7 +277,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
     marginBottom: 30,
     height: 55,
-    borderRadius: 17
+    borderRadius: 17,
   },
   buttonText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
 });

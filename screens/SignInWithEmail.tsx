@@ -256,10 +256,10 @@ import {
 } from 'react-native';
 import React, { useState, useContext } from 'react';
 import Icon from 'react-native-vector-icons/FontAwesome5';
-import { loginUser } from '../firebase/auth';
 import { UserContext } from '../context/UserContext';
 import * as Animatable from 'react-native-animatable';
 import axios from 'axios';
+import * as LocalAuthentication from 'expo-local-authentication';
 
 const SignInWithEmail = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -267,37 +267,75 @@ const SignInWithEmail = ({ navigation }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [activeTab, setActiveTab] = useState('login');
   const [rememberMe, setRememberMe] = useState(false);
+  const [biometricPassed, setBiometricPassed] = useState(false);
 
   const { loadUserData } = useContext(UserContext);
 
+  const triggerBiometricAuth = async () => {
+    const compatible = await LocalAuthentication.hasHardwareAsync();
+    const enrolled = await LocalAuthentication.isEnrolledAsync();
+    if (!compatible || !enrolled) return;
+
+    const result = await LocalAuthentication.authenticateAsync({
+      promptMessage: 'Verify your identity',
+      fallbackLabel: 'Enter Passcode',
+    });
+
+    setBiometricPassed(result.success);
+    if (!result.success) {
+      Alert.alert("Biometric Failed", "Authentication did not pass.");
+    }
+  };
+
   const handleLogin = async () => {
+    if (!biometricPassed) {
+      Alert.alert("Biometric Required", "Please verify your fingerprint or face to proceed.");
+      return;
+    }
+
     try {
-      const response = await axios.post('http://10.132.178.11:8080/login', {
+      const response = await axios.post('http://10.149.20.213:8080/login', {
         username: email.toLowerCase(),
         password: password,
       });
 
       const token = response.data;
-      if (!token || token === "Failed") {
-        Alert.alert("Login Failed", "Invalid credentials.");
+
+      if (
+        !token ||
+        typeof token !== 'string' ||
+        token.toLowerCase().includes('invalid') ||
+        token.toLowerCase().includes('fail')
+      ) {
+        Alert.alert("Login Failed", String(token));
         return;
       }
 
       await loadUserData(email);
       Alert.alert("Success", "Logged in via backend successfully");
       navigation.navigate('LoggedIn');
-
-      // Firebase fallback (optional):
-      // const userCredential = await loginUser(email, password);
-      // const user = userCredential.user;
-      // if (!user.emailVerified) {
-      //   Alert.alert("Email Not Verified", "Please verify your email before logging in.");
-      //   return;
-      // }
-      // await loadUserData(user.email);
-
     } catch (err) {
-      Alert.alert("Error", err.response?.data || err.message);
+      let alertMessage = "An unexpected error occurred.";
+
+      try {
+        const raw = err?.response?.data ?? err?.message ?? err;
+
+        if (typeof raw === 'string') {
+          alertMessage = raw;
+        } else if (typeof raw === 'object' && raw !== null) {
+          if (typeof raw.message === 'string') {
+            alertMessage = raw.message;
+          } else {
+            alertMessage = JSON.stringify(raw);
+          }
+        } else {
+          alertMessage = String(raw);
+        }
+      } catch (parseError) {
+        alertMessage = "Error parsing error response.";
+      }
+
+      Alert.alert("Error", alertMessage);
     }
   };
 
@@ -372,10 +410,30 @@ const SignInWithEmail = ({ navigation }) => {
                   ]}
                 />
                 <Text style={styles.rememberText}>Remember me</Text>
-                <TouchableOpacity style={{ marginLeft: 'auto' }}>
+                <TouchableOpacity style={{ marginLeft: 'auto' }} onPress={() => Alert.alert("Feature Coming Soon", "Forgot Password feature is under development.")}>
                   <Text style={styles.forgotText}>Forgot Password?</Text>
                 </TouchableOpacity>
               </View>
+
+              {email && password && (
+                <TouchableOpacity
+                  style={styles.biometricRow}
+                  onPress={triggerBiometricAuth}
+                >
+                  <Icon
+                    name={biometricPassed ? "check-circle" : "fingerprint"}
+                    size={24}
+                    color={biometricPassed ? "green" : "gray"}
+                    solid
+                  />
+                  <Text style={[
+                    styles.biometricLabel,
+                    { color: biometricPassed ? 'green' : 'gray' }
+                  ]}>
+                    {biometricPassed ? "Verified" : "Tap to verify identity"}
+                  </Text>
+                </TouchableOpacity>
+              )}
 
               <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
                 <Text style={styles.loginButtonText}>Login</Text>
@@ -490,8 +548,18 @@ const styles = StyleSheet.create({
     color: '#1e7898',
     fontSize: 13,
   },
+  biometricRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+    gap: 10,
+  },
+  biometricLabel: {
+    fontSize: 13,
+  },
   loginButton: {
-    backgroundColor: '#5c8d73',
+    backgroundColor: "#0b1e39",
     borderRadius: 18,
     paddingVertical: 14,
     alignItems: 'center',

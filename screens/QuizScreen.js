@@ -1,5 +1,3 @@
-// screens/QuizScreen.js
-
 import React, { useState, useEffect, useContext } from 'react';
 import {
   View,
@@ -53,41 +51,58 @@ const QuizScreen = () => {
   };
 
   const handleNext = () => {
-    if (selectedOption === currentQuestion.answer) {
-      setScore(score + 1);
+  let newScore = score;
+  if (selectedOption === currentQuestion.answer) {
+    newScore += 1;
+    setScore(newScore);
+  }
+
+  setSelectedOption(null);
+
+  if (currentQuestionIndex + 1 < questions.length) {
+    setCurrentQuestionIndex(currentQuestionIndex + 1);
+    setTimer(30);
+  } else {
+    finishQuiz(newScore); // pass the correct final score
+  }
+};
+
+  const finishQuiz = async (finalScore) => {
+  const percentage = Math.round((finalScore / questions.length) * 100);
+  setQuizComplete(true);
+
+  try {
+    await AsyncStorage.setItem(attemptKey, percentage.toString());
+    await AsyncStorage.setItem(attemptCountKey, attemptNumber.toString());
+
+    if (percentage >= 80 && user.email) {
+      const awardKey = `quizAwarded_${courseId}_${user.email}`;
+      const alreadyAwarded = await AsyncStorage.getItem(awardKey);
+
+      if (!alreadyAwarded) {
+        const pointsKey = `userPoints_${user.email}`;
+        const stored = await AsyncStorage.getItem(pointsKey);
+        const existing = stored ? parseInt(stored) : 0;
+        const updated = existing + 300;
+        await AsyncStorage.setItem(pointsKey, updated.toString());
+        await AsyncStorage.setItem(awardKey, 'true');
+      }
     }
+  } catch (err) {
+    console.error('Error saving quiz score or awarding points:', err);
+  }
 
-    setSelectedOption(null);
-    if (currentQuestionIndex + 1 < questions.length) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-      setTimer(30);
-    } else {
-      finishQuiz();
-    }
-  };
-
-  const finishQuiz = async () => {
-    const percentage = Math.round((score / questions.length) * 100);
-    setQuizComplete(true);
-
-    try {
-      await AsyncStorage.setItem(attemptKey, percentage.toString());
-      await AsyncStorage.setItem(attemptCountKey, attemptNumber.toString());
-    } catch (err) {
-      console.error('Error saving quiz score:', err);
-    }
-
-    Alert.alert(
-      'Quiz Completed',
-      `You scored ${percentage}%. ${percentage >= 80 ? '✅ You passed!' : '❌ Try again to score at least 80%.'}`,
-      [
-        {
-          text: 'OK',
-          onPress: () => navigation.goBack(),
-        },
-      ]
-    );
-  };
+  Alert.alert(
+    'Quiz Completed',
+    `You scored ${percentage}%. ${percentage >= 80 ? '✅ You passed!' : '❌ Try again to score at least 80%.'}`,
+    [
+      {
+        text: 'OK',
+        onPress: () => navigation.goBack(),
+      },
+    ]
+  );
+};
 
   if (quizComplete) {
     return null;

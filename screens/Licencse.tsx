@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Animatable from 'react-native-animatable';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const { width } = Dimensions.get('window');
 
@@ -44,6 +45,16 @@ const Licencse = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* ✅ Gradient Header */}
+      <LinearGradient
+        colors={['#007AFF', '#00C6FF']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={styles.gradientHeader}
+      >
+        <Text style={styles.gradientText}>Terms and Conditions</Text>
+      </LinearGradient>
+
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Animatable.View animation="fadeInDown" delay={100} duration={1000}>
           <Animated.Image
@@ -102,7 +113,7 @@ const Licencse = ({ navigation }) => {
         </Animatable.View>
       </ScrollView>
 
-      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('About')}>
+      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Profile')}>
         <Text style={styles.buttonText}>Continue</Text>
       </TouchableOpacity>
     </SafeAreaView>
@@ -115,6 +126,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  gradientHeader: {
+    height: 100,
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 5,
+  },
+  gradientText: {
+    fontSize: 22,
+    color: 'white',
+    fontWeight: 'bold',
   },
   scrollContent: {
     padding: 20,

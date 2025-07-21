@@ -212,6 +212,7 @@
 //     paddingBottom: 10,
 //   },
 // });
+// imports
 import {
   StyleSheet, Text, TextInput, View, TouchableOpacity,
   KeyboardAvoidingView, Platform, ScrollView, Alert,
@@ -219,10 +220,10 @@ import {
 } from 'react-native';
 import React, { useState, useContext, useRef } from 'react';
 import Icon from 'react-native-vector-icons/FontAwesome5';
-import { LinearGradient } from 'expo-linear-gradient';
 import { UserContext } from '../context/UserContext';
 import * as Animatable from 'react-native-animatable';
 import axios from 'axios';
+import { registerUser, auth } from '../firebase/auth';
 
 const SignUp = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -231,6 +232,7 @@ const SignUp = ({ navigation }) => {
   const [contact, setContact] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [awaitingVerification, setAwaitingVerification] = useState(false);
 
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
@@ -247,9 +249,8 @@ const SignUp = ({ navigation }) => {
 
   const validateEmail = (value) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const isValidFormat = emailRegex.test(value);
     const endsWithDotCom = value.endsWith(".com");
-    const valid = isValidFormat && endsWithDotCom;
+    const valid = emailRegex.test(value) && endsWithDotCom;
     setValidEmail(valid);
     return valid;
   };
@@ -262,6 +263,87 @@ const SignUp = ({ navigation }) => {
     if (/[^A-Za-z0-9]/.test(pass)) score++;
     setPasswordStrength(score);
     return score >= 2;
+  };
+
+  const getStrengthColor = () => {
+    if (passwordStrength <= 1) return 'red';
+    if (passwordStrength === 2) return 'orange';
+    return 'green';
+  };
+
+  const getStrengthLabel = () => {
+    if (passwordStrength <= 1) return 'Weak';
+    if (passwordStrength === 2) return 'Fair';
+    return 'Strong';
+  };
+
+  const handleFirebaseSignup = async () => {
+    try {
+      const userCredential = await registerUser(email, password);
+      Alert.alert("Verification email sent", "Please check your inbox and verify your email.");
+      setAwaitingVerification(true);
+    } catch (err) {
+      console.log("Firebase error:", err);
+      setGeneralError("Firebase signup failed. Try a different email.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBackendRegistration = async () => {
+    try {
+      const response = await axios.post('http://10.149.20.213:8080/register', {
+        username: email,
+        password: password,
+      });
+
+      if (response.status === 200) {
+        const userData = {
+          id: response.data.id,
+          username: name,
+          email: email,
+          contact: contact,
+          password: password,
+          profilePicture: null,
+        };
+        setUser(userData);
+        Alert.alert("Success", "Account created successfully.");
+        navigation.navigate('Sign In');
+      } else {
+        setGeneralError("Unexpected server response.");
+      }
+    } catch (err) {
+      console.log("Backend error:", err);
+      if (
+        err.response &&
+        typeof err.response.data === 'string' &&
+        err.response.data.toLowerCase().includes("constraint")
+      ) {
+        setGeneralError("Email already exists.");
+      } else {
+        setGeneralError("Something went wrong.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyAndRegister = async () => {
+    try {
+      setLoading(true);
+      await auth.currentUser.reload();
+      const currentUser = auth.currentUser;
+      if (currentUser.emailVerified) {
+        await handleBackendRegistration();
+      } else {
+        Alert.alert("Email Not Verified", "Please verify your email before proceeding.");
+        setLoading(false);
+      }
+    } catch (err) {
+      console.log("Verification error:", err);
+      setGeneralError("Failed to verify email.");
+      setLoading(false);
+    }
   };
 
   const handleSignUp = async () => {
@@ -279,59 +361,19 @@ const SignUp = ({ navigation }) => {
     }
 
     if (!validateEmail(email)) {
-      setEmailError("Enter a valid email ending with .com");
+      setEmailError("Email must be valid and end with .com");
       emailRef.current.focus();
       return;
     }
 
     if (!checkPasswordStrength(password)) {
-      setPasswordError("Password must be stronger (8+ chars, numbers, symbols, capital letters).");
+      setPasswordError("Password must be stronger.");
       passwordRef.current.focus();
       return;
     }
 
     setLoading(true);
-    try {
-      const response = await axios.post('http://10.132.178.11:8080/register', {
-        username: email,
-        password: password,
-      });
-
-      if (response.status === 200) {
-        const userData = {
-          id: response.data.id,
-          username: name,
-          email: email,
-          contact: contact,
-          password: password,
-          profilePicture: null,
-        };
-        setUser(userData);
-        Alert.alert("Success", "Account created successfully via backend.");
-        navigation.navigate('Sign In');
-      } else {
-        setGeneralError("Unexpected server response.");
-      }
-
-    } catch (err) {
-      if (
-        err.response &&
-        typeof err.response.data === 'string' &&
-        err.response.data.toLowerCase().includes("constraint")
-      ) {
-        setGeneralError("Email already exists. Please use a different one.");
-      } else {
-        setGeneralError(err.response?.data || err.message);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getStrengthColor = () => {
-    if (passwordStrength <= 1) return 'red';
-    if (passwordStrength === 2) return 'orange';
-    return 'green';
+    await handleFirebaseSignup();
   };
 
   const login = () => navigation.navigate('Sign In');
@@ -340,22 +382,15 @@ const SignUp = ({ navigation }) => {
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
-          <LinearGradient colors={['#6dd5ed', '#2193b0']} style={styles.gradient}>
-            <View style={styles.waveTop} />
-            <Animatable.View style={styles.container} animation="fadeInUp" duration={800}>
+          <View style={styles.container}>
+            <View style={styles.topSection} />
+            <Animatable.View style={styles.formContainer} animation="fadeInUp" duration={1000}>
               <Image source={require('../assets/apexLearn2.png')} style={styles.logo} />
               <Text style={styles.title}>Create Account</Text>
 
               <View style={styles.inputContainer}>
                 <Icon name="user" size={18} color="#999" style={styles.icon} />
-                <TextInput
-                  ref={nameRef}
-                  placeholder="Username"
-                  placeholderTextColor="#999"
-                  style={styles.input}
-                  value={name}
-                  onChangeText={setName}
-                />
+                <TextInput ref={nameRef} placeholder="Username" placeholderTextColor="#999" style={styles.input} value={name} onChangeText={setName} />
               </View>
 
               <View style={styles.inputContainer}>
@@ -393,22 +428,24 @@ const SignUp = ({ navigation }) => {
                   <Icon name={showPassword ? 'eye-slash' : 'eye'} size={18} color="#999" />
                 </TouchableOpacity>
               </View>
+
+              {password ? (
+                <Text style={[styles.strengthLabel, { color: getStrengthColor() }]}>
+                  Password strength: {getStrengthLabel()}
+                </Text>
+              ) : null}
+
               <View style={styles.strengthBarContainer}>
-                <View style={[styles.strengthBar, { width: `${(passwordStrength / 4) * 100}%`, backgroundColor: getStrengthColor() }]} />
+                <View style={[styles.strengthBar, {
+                  width: `${(passwordStrength / 4) * 100}%`,
+                  backgroundColor: getStrengthColor()
+                }]} />
               </View>
               {passwordError ? <Text style={styles.error}>{passwordError}</Text> : null}
 
               <View style={styles.inputContainer}>
                 <Icon name="phone" size={18} color="#999" style={styles.icon} />
-                <TextInput
-                  ref={contactRef}
-                  placeholder="Contact"
-                  placeholderTextColor="#999"
-                  style={styles.input}
-                  value={contact}
-                  onChangeText={setContact}
-                  keyboardType="phone-pad"
-                />
+                <TextInput ref={contactRef} placeholder="Contact" placeholderTextColor="#999" style={styles.input} value={contact} onChangeText={setContact} keyboardType="phone-pad" />
               </View>
 
               {generalError ? <Text style={styles.error}>{generalError}</Text> : null}
@@ -416,7 +453,7 @@ const SignUp = ({ navigation }) => {
               <TouchableOpacity
                 style={[styles.createButton, loading && { opacity: 0.7 }]}
                 onPress={handleSignUp}
-                disabled={loading}
+                disabled={loading || awaitingVerification}
               >
                 {loading ? <ActivityIndicator color="#fff" /> : (
                   <>
@@ -426,12 +463,25 @@ const SignUp = ({ navigation }) => {
                 )}
               </TouchableOpacity>
 
+              {awaitingVerification && (
+                <TouchableOpacity
+                  style={[styles.createButton, { backgroundColor: '#006400', marginTop: 15 }]}
+                  onPress={handleVerifyAndRegister}
+                >
+                  {loading ? <ActivityIndicator color="#fff" /> : (
+                    <>
+                      <Text style={styles.createButtonText}>I've Verified My Email</Text>
+                      <Icon name="check" size={16} color="white" style={{ marginLeft: 10 }} />
+                    </>
+                  )}
+                </TouchableOpacity>
+              )}
+
               <TouchableOpacity style={{ marginTop: 30 }} onPress={login}>
                 <Text style={styles.loginText}>Already have an account? Log in</Text>
               </TouchableOpacity>
             </Animatable.View>
-            <View style={styles.waveBottom} />
-          </LinearGradient>
+          </View>
         </ScrollView>
       </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
@@ -441,95 +491,28 @@ const SignUp = ({ navigation }) => {
 export default SignUp;
 
 const styles = StyleSheet.create({
-  gradient: { flex: 1 },
-  container: {
-    padding: 25,
-    paddingTop: 10,
-    justifyContent: 'center',
-  },
-  logo: {
-    height: 100,
-    width: 180,
-    alignSelf: 'center',
-    resizeMode: 'contain',
-    marginBottom: 10,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-    alignSelf: 'center',
-    marginBottom: 20,
-  },
+  container: { flex: 1, backgroundColor: '#fff' },
+  topSection: { height: 100, backgroundColor: '#000', borderBottomLeftRadius: 40, borderBottomRightRadius: 50 },
+  formContainer: { padding: 25, paddingTop: 10, justifyContent: 'center' },
+  logo: { height: 100, width: 180, alignSelf: 'center', resizeMode: 'contain', marginBottom: 10 },
+  title: { fontSize: 24, fontWeight: 'bold', color: '#000', alignSelf: 'center', marginBottom: 20 },
   inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 17,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    marginBottom: 15,
-    elevation: 3,
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#f2f2f2',
+    borderRadius: 17, paddingHorizontal: 15, paddingVertical: 12, marginBottom: 15,
   },
   icon: { marginRight: 10 },
-  input: {
-    flex: 1,
-    color: '#000',
-    fontSize: 16,
-    fontWeight: '500',
-  },
+  input: { flex: 1, color: '#000', fontSize: 16, fontWeight: '500' },
   createButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1e7898',
-    paddingVertical: 15,
-    borderRadius: 18,
-    justifyContent: 'center',
-    marginTop: 15,
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#000',
+    paddingVertical: 15, borderRadius: 18, justifyContent: 'center', marginTop: 15,
   },
-  createButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 18,
-  },
-  loginText: {
-    color: '#fff',
-    textAlign: 'center',
-    fontWeight: 'bold',
-    fontSize: 16,
-    paddingBottom: 20,
-  },
-  error: {
-    color: 'red',
-    marginLeft: 8,
-    marginBottom: 8,
-    fontSize: 13,
-  },
+  createButtonText: { color: '#fff', fontWeight: 'bold', fontSize: 18 },
+  loginText: { color: '#333', textAlign: 'center', fontWeight: 'bold', fontSize: 16, paddingBottom: 20 },
+  error: { color: 'red', marginLeft: 8, marginBottom: 8, fontSize: 13 },
+  strengthLabel: { fontWeight: 'bold', fontSize: 13, marginBottom: 5, marginLeft: 8 },
   strengthBarContainer: {
-    height: 8,
-    backgroundColor: '#eee',
-    borderRadius: 5,
-    marginHorizontal: 5,
-    marginBottom: 10,
-    overflow: 'hidden',
+    height: 8, backgroundColor: '#eee', borderRadius: 5, marginHorizontal: 5,
+    marginBottom: 10, overflow: 'hidden',
   },
-  strengthBar: {
-    height: '100%',
-    borderRadius: 5,
-  },
-  waveTop: {
-    height: 90,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    borderBottomLeftRadius: 50,
-    borderBottomRightRadius: 50,
-  },
-  waveBottom: {
-    height: 90,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    borderTopLeftRadius: 50,
-    borderTopRightRadius: 50,
-    marginTop: 20,
-  },
+  strengthBar: { height: '100%', borderRadius: 5 },
 });
-
-

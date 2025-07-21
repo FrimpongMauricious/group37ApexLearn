@@ -6,7 +6,7 @@ export const courses = [
     time: '10.5 hours-32 lessons',
     image: { uri: 'https://raw.githubusercontent.com/FrimpongMauricious/new_images/main/pm.jpg' },
     institution: 'Microsoft',
-    tutor: 'Christabel Benewaah',
+    tutor: 'Jeff Teper',
     about: 'Learn the principles of software design and development to  increase productivity',
     tutorBio: { uri: 'https://raw.githubusercontent.com/FrimpongMauricious/new_images/main/microsoft1.png' },
     videoUrl:'https://www.youtube.com/watch?v=uWPIsaYpY7U&t=63s'
@@ -18,7 +18,7 @@ export const courses = [
     time: '6.5 hours-42 lessons',
     image: { uri: 'https://raw.githubusercontent.com/FrimpongMauricious/new_images/main/background3.jpg' },
     institution: 'Intel',
-    tutor: 'Mauricious Frimpong',
+    tutor: 'Jeff Dean',
     about: 'Learn the principles of software design and development to  increase productivity',
     tutorBio: { uri: 'https://raw.githubusercontent.com/FrimpongMauricious/new_images/main/intel.png' },
     videoUrl:'https://www.youtube.com/watch?v=sO8eGL6SFsA'
@@ -42,7 +42,7 @@ export const courses = [
     time: '4.5 hours-22 lessons',
     image: { uri: 'https://raw.githubusercontent.com/FrimpongMauricious/new_images/main/ui.jpg' },
     institution: 'Amalitech',
-    tutor: 'Prof. Acqua Hayfron',
+    tutor: 'Peter Tarka',
     about: 'Learn the principles of software design and development to  increase productivity',
     tutorBio: { uri: 'https://raw.githubusercontent.com/FrimpongMauricious/new_images/main/amali.png' },
     videoUrl:'https://www.youtube.com/watch?v=6qLq7xkodA8'
@@ -54,7 +54,7 @@ export const courses = [
     time: '10 hours-31 lessons',
     image: { uri: 'https://raw.githubusercontent.com/FrimpongMauricious/new_images/main/ai.webp' },
     institution: 'Google',
-    tutor: 'Prof. Acqua Hayfron',
+    tutor: 'Fei-Fei Li',
     about: 'Learn the principles of software design and development to  increase productivity',
     tutorBio: { uri: 'https://raw.githubusercontent.com/FrimpongMauricious/new_images/main/google.png' },
     videoUrl:'https://www.youtube.com/watch?v=JMUxmLyrhSk&t=19s'
@@ -216,14 +216,6 @@ export const classes = [
 
 export const mentors = [
   {
-    name: 'Osmond',
-    image: require('../assets/kwame_chat.png'),
-    expertise: 'Senior Project manager',
-    workplace: 'ApexLearn',
-    phone: '+233 547 461 247',
-    email: 'iosmondabdulkarimworiwi72@gmail.com'
-  },
-  {
     name: 'Mauricious',
     image: require('../assets/mauricious_frimpong.jpg'),
     expertise: 'Senior Software Engineer',
@@ -233,15 +225,23 @@ export const mentors = [
   },
   {
     name: 'Eugene',
-    image: require('../assets/@bloackChain.jpg'),
+    image: require('../assets/junior.jpg'),
     expertise: 'UI/UX Designer',
     workplace: 'ApexLearn',
     phone: '+233 550 090 131',
     email: 'eugenedankwah0@gmail.com'
   },
   {
+    name: 'Osmond',
+    image: require('../assets/osmond.jpg'),
+    expertise: 'Senior Project manager',
+    workplace: 'ApexLearn',
+    phone: '+233 547 461 247',
+    email: 'iosmondabdulkarimworiwi72@gmail.com'
+  },
+  {
     name: 'Henry',
-    image: require('../assets/portrait.jpg'),
+    image: require('../assets/henry.jpg'),
     expertise: 'Back end Developer',
     workplace: 'ApexLearn',
     phone: '+233 596 021 897',
@@ -257,7 +257,7 @@ export const mentors = [
   },
   {
     name: 'Nana Baffour',
-    image: require('../assets/portrait.jpg'),
+    image: require('../assets/nanaB.jpg'),
     expertise: 'Back end Developer',
     workplace: 'ApexLearn',
     phone: '+233 595 931 878',
@@ -265,7 +265,7 @@ export const mentors = [
   },
   {
     name: 'Gifty',
-    image: require('../assets/@bloackChain.jpg'),
+    image: require('../assets/gifty.jpg'),
     expertise: 'Front end Developer',
     workplace: 'ApexLearn',
     phone: '+233 595 931 878',

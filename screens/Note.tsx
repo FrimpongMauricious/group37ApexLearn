@@ -7,10 +7,18 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import moment from 'moment';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { UserContext } from '../context/UserContext'; // ✅ Import user context
+import { UserContext } from '../context/UserContext';
+
+const DEFAULT_NOTE = {
+  id: 'default_note_apexlearn',
+  title: 'Team ApexLearn',
+  content: 'Hey learner, you can keep your personal notes here for future reference..\nHappy learning 🥳🥳',
+  timestamp: new Date().toISOString(),
+  isDefault: true,
+};
 
 const Note = () => {
-  const { user } = useContext(UserContext); // ✅ Get current user
+  const { user } = useContext(UserContext);
   const userEmail = user?.email || 'guest';
   const STORAGE_KEY = `user_notes_${userEmail}`;
 
@@ -24,7 +32,16 @@ const Note = () => {
     const loadNotes = async () => {
       try {
         const stored = await AsyncStorage.getItem(STORAGE_KEY);
-        if (stored) setNotes(JSON.parse(stored));
+        let loadedNotes = stored ? JSON.parse(stored) : [];
+
+        // Add default note if it doesn't exist
+        const hasDefault = loadedNotes.some(note => note.id === DEFAULT_NOTE.id);
+        if (!hasDefault) {
+          loadedNotes = [DEFAULT_NOTE, ...loadedNotes];
+          await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(loadedNotes));
+        }
+
+        setNotes(loadedNotes);
       } catch (err) {
         console.error('Error loading notes:', err);
       }
@@ -49,10 +66,14 @@ const Note = () => {
     const timestamp = new Date().toISOString();
 
     if (editingNoteId !== null) {
+      const noteToEdit = notes.find(n => n.id === editingNoteId);
+      if (noteToEdit?.isDefault) {
+        Alert.alert('Not Editable', 'This note is protected and cannot be edited.');
+        return;
+      }
+
       const updatedNotes = notes.map((n) =>
-        n.id === editingNoteId
-          ? { ...n, title, content, timestamp }
-          : n
+        n.id === editingNoteId ? { ...n, title, content, timestamp } : n
       );
       setNotes(updatedNotes);
       saveNotesToStorage(updatedNotes);
@@ -75,6 +96,10 @@ const Note = () => {
   };
 
   const handleEdit = (note) => {
+    if (note.isDefault) {
+      Alert.alert('Not Editable', 'This note is protected and cannot be edited.');
+      return;
+    }
     setTitle(note.title);
     setContent(note.content);
     setShowEditor(true);
@@ -110,9 +135,11 @@ const Note = () => {
         {item.content}
       </Text>
       <View style={styles.actions}>
-        <TouchableOpacity onPress={() => handleEdit(item)} style={styles.iconButton}>
-          <Icon name="edit" size={18} color="#0077cc" />
-        </TouchableOpacity>
+        {!item.isDefault && (
+          <TouchableOpacity onPress={() => handleEdit(item)} style={styles.iconButton}>
+            <Icon name="edit" size={18} color="#0077cc" />
+          </TouchableOpacity>
+        )}
         <TouchableOpacity onPress={() => handleDelete(item.id)} style={styles.iconButton}>
           <Icon name="trash" size={18} color="red" />
         </TouchableOpacity>
@@ -166,11 +193,6 @@ const Note = () => {
     </SafeAreaProvider>
   );
 };
-
-
-
-
-
 
 export default Note;
 
