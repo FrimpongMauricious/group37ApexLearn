@@ -45,9 +45,9 @@ const Licencse = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* ✅ Gradient Header */}
+      {/*  Gradient Header */}
       <LinearGradient
-        colors={['#007AFF', '#00C6FF']}
+        colors={['#7351cb', '#7c92d8','#bec9ec','#bd7cd8']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
         style={styles.gradientHeader}
@@ -133,6 +133,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 5,
+    borderBottomLeftRadius: 10,
+    borderBottomRightRadius: 10,    
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
   },
   gradientText: {
     fontSize: 22,

@@ -1,5 +1,6 @@
 import React, { createContext, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 import { getCurrentUserEmail } from '../utils/storageUtils';
 import { courses, trending, Recommended } from '../screens/AvailableCourses';
 
@@ -10,31 +11,47 @@ export const CourseProvider = ({ children }) => {
   const [enrolledCourses, setEnrolledCourses] = useState([]);
   const [wishlist, setWishlist] = useState([]);
   const [email, setEmail] = useState('');
+  const [userId, setUserId] = useState(null);
 
   useEffect(() => {
     const init = async () => {
       const userEmail = await getCurrentUserEmail();
       setEmail(userEmail);
-      if (userEmail) loadCourses(userEmail);
+
+      if (userEmail) {
+        try {
+          const res = await axios.get(`https://updatedapexlearnbackend-1.onrender.com/api/users/email/${userEmail}`);
+          const fetchedId = res.data.id;
+          setUserId(fetchedId);
+
+          loadCourses(userEmail, fetchedId);
+        } catch (err) {
+          console.error('Error fetching userId by email:', err.message);
+        }
+      }
     };
     init();
   }, []);
 
-  const loadCourses = async (email) => {
+  const loadCourses = async (email, id) => {
     try {
       const userCoursesKey = `userCourses_${email}`;
       const enrolledKey = `enrolledCourses_${email}`;
       const wishlistKey = `wishlist_${email}`;
 
-      const storedUserCourses = await AsyncStorage.getItem(userCoursesKey);
       const storedEnrolled = await AsyncStorage.getItem(enrolledKey);
       const storedWishlist = await AsyncStorage.getItem(wishlistKey);
 
-      if (storedUserCourses) setUserCourses(JSON.parse(storedUserCourses));
       if (storedEnrolled) setEnrolledCourses(JSON.parse(storedEnrolled));
       if (storedWishlist) setWishlist(JSON.parse(storedWishlist));
+
+      // Fetch user's uploaded courses from backend
+      const res = await axios.get(`https://updatedapexlearnbackend-1.onrender.com/api/courses/user/${id}`);
+      const remoteUserCourses = res.data || [];
+      setUserCourses(remoteUserCourses);
+      await AsyncStorage.setItem(userCoursesKey, JSON.stringify(remoteUserCourses));
     } catch (err) {
-      console.error('Error loading courses:', err);
+      console.error('Error loading courses:', err.message);
     }
   };
 
@@ -60,13 +77,12 @@ export const CourseProvider = ({ children }) => {
     const alreadyExists = enrolledCourses.some(c => c.id === course.id);
     if (alreadyExists) return;
 
-    // Get the full course from static sources to fetch the videoUrl
     const allAvailable = [...courses, ...trending, ...Recommended];
     const fullCourse = allAvailable.find(c => c.id === course.id);
 
     const courseWithProgress = {
       ...course,
-      videoUrl: fullCourse?.videoUrl || '', // ✅ Ensure videoUrl is attached
+      videoUrl: fullCourse?.videoUrl || '',
       progress: 0,
     };
 

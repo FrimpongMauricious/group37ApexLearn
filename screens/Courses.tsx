@@ -74,7 +74,7 @@ const Courses = ({ navigation }) => {
   const onRefresh = async () => {
   setRefreshing(true);
   try {
-    const response = await axios.get('http://10.149.20.213:8080/api/courses');
+    const response = await axios.get('https://updatedapexlearnbackend-1.onrender.com/api/courses');
     console.log("✅ Refreshed Courses:", response.data);
     setNewCourses(response.data);
   } catch (error) {
@@ -108,7 +108,7 @@ const Courses = ({ navigation }) => {
       // const response = await axios.get('http://10.132.178.11:8081/api/courses');
       // const response = await axios.get('http://10.132.178.11:8081/api/courses');
 // Fetch courses
-const response = await axios.get('http://10.149.20.213:8080/api/courses');
+const response = await axios.get('https://updatedapexlearnbackend-1.onrender.com/api/courses');
 
       console.log("✅ New Courses Fetched:", response.data);
       setNewCourses(response.data);

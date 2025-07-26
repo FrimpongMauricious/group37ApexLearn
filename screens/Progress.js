@@ -28,7 +28,9 @@ const ProgressScreen = () => {
     videoUrl: 'https://www.youtube.com/shorts/QrEe2CUj1lA',
   };
 
-  const allCoursesToShow = [introCourse, ...enrolledCourses.filter(course => course.id !== 'intro-course')];
+  const filteredEnrolled = enrolledCourses?.filter(course => course?.id !== 'intro-course') || [];
+
+  const allCoursesToShow = [introCourse, ...filteredEnrolled];
 
   const renderCourseItem = ({ item }) => {
     const source =

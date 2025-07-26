@@ -292,7 +292,7 @@ const SignUp = ({ navigation }) => {
 
   const handleBackendRegistration = async () => {
     try {
-      const response = await axios.post('http://10.149.20.213:8080/register', {
+      const response = await axios.post('https://updatedapexlearnbackend-1.onrender.com/register', {
         username: email,
         password: password,
       });

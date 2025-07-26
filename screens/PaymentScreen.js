@@ -85,7 +85,7 @@ const PaymentScreen = ({ route, navigation }) => {
     }
   };
 
-  const handleOnRedirect = (data) => {
+  const handleOnRedirect = async (data) => {
     console.log('Payment response:', data);
     console.log('Incoming data:', newCourse);
 
@@ -110,7 +110,7 @@ const PaymentScreen = ({ route, navigation }) => {
         };
 
         if (type === 'enroll') {
-          enrollInCourse(courseWithId);
+          await enrollInCourse(courseWithId);
           addNotification(`You successfully enrolled in ${courseWithId.name}`);
           sendEnrollmentNotification(courseWithId.name);
           removeFromWishlist(courseWithId.id);
