@@ -450,7 +450,7 @@ const response = await axios.get('https://updatedapexlearnbackend-1.onrender.com
 
           <Text style={styles.about}>{item.description?.slice(0, 40)}...</Text>
           <View style={styles.amountView}>
-            <Text style={styles.amount}>Free</Text>
+            <Text style={styles.amount}>$ {item.price}</Text>
             <Text style={styles.duration}>Online</Text>
           </View>
         </TouchableOpacity>
@@ -583,7 +583,7 @@ const styles = StyleSheet.create({
   trendingImage: { height: 150, width: screenWidth * 0.8, borderRadius: 12 },
   tutorBioView: { flexDirection: 'row', paddingHorizontal: 10, alignItems: 'center' },
   amountView: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 10, marginTop: 10 },
-  amount: { fontSize: 18, fontWeight: 'bold' },
+  amount: { fontSize: 18, fontWeight: 'bold' ,color:'green'},
   duration: { color: 'grey' },
   mentors: { flexDirection: 'row', marginHorizontal: 20, borderRadius: 20, justifyContent: 'center' },
   mentorImage: { height: 100, width: 100, borderRadius: 50, marginBottom: 6 },

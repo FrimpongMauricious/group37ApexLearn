@@ -12,9 +12,6 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Notifications from 'expo-notifications';
-import * as Device from 'expo-device';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import ConfettiCannon from 'react-native-confetti-cannon';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -32,90 +29,16 @@ const LearnSchedulerScreen = () => {
   const alarmTimeoutRef = useRef(null);
 
   useEffect(() => {
-    initNotificationSettings();
-    loadSavedTime();
-  }, []);
-
-  useEffect(() => {
     let timer;
     if (countdown && countdown > 0) {
       timer = setInterval(() => setCountdown(prev => prev - 1), 1000);
     } else if (countdown === 0) {
       setShowConfetti(true);
       playAlarmFrom45s();
-      triggerEndOfSessionNotification();
       setTimeout(() => setShowConfetti(false), 4000);
     }
     return () => clearInterval(timer);
   }, [countdown]);
-
-  const initNotificationSettings = async () => {
-    if (Device.isDevice) {
-      const { status } = await Notifications.getPermissionsAsync();
-      if (status !== 'granted') {
-        await Notifications.requestPermissionsAsync();
-      }
-    }
-
-    Notifications.setNotificationHandler({
-      handleNotification: async () => ({
-        shouldShowBanner: true,
-        shouldPlaySound: true,
-        shouldSetBadge: false,
-      }),
-    });
-
-    if (Platform.OS === 'android') {
-      await Notifications.setNotificationChannelAsync('default', {
-        name: 'default',
-        importance: Notifications.AndroidImportance.HIGH,
-        sound: 'default',
-      });
-    }
-
-    Notifications.addNotificationReceivedListener(notification => {
-      console.log('Notification received:', notification);
-    });
-  };
-
-  const loadSavedTime = async () => {
-    const savedTime = await AsyncStorage.getItem('learnReminderTime');
-    if (savedTime) {
-      setNotificationTime(new Date(savedTime));
-    }
-  };
-
-  const scheduleNotification = async () => {
-    const learningDuration = duration || parseFloat(customDuration);
-    if (!learningDuration || isNaN(learningDuration)) {
-      Alert.alert('Invalid Duration', 'Please select or enter a valid learning time.');
-      return;
-    }
-
-    await Notifications.cancelAllScheduledNotificationsAsync();
-
-    const hour = notificationTime.getHours();
-    const minute = notificationTime.getMinutes();
-
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title: 'ApexLearn Reminder',
-        body: "It's time to continue learning!",
-        sound: 'default',
-      },
-      trigger: {
-        hour,
-        minute,
-        repeats: true,
-      },
-    });
-
-    await AsyncStorage.setItem('learnReminderTime', notificationTime.toString());
-
-    const totalSeconds = learningDuration * 3600;
-    setCountdown(totalSeconds);
-    Alert.alert('Scheduled!', `Reminder set at ${hour}:${minute < 10 ? '0' + minute : minute} for ${learningDuration} hour(s).`);
-  };
 
   const formatCountdown = seconds => {
     const hrs = Math.floor(seconds / 3600);
@@ -158,15 +81,20 @@ const LearnSchedulerScreen = () => {
     Alert.alert('Snoozed', 'Alarm will ring again in 5 minutes.');
   };
 
-  const triggerEndOfSessionNotification = async () => {
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title: '🎉 Learning Session Complete!',
-        body: "Great job! You've completed your study session on ApexLearn.",
-        sound: 'default',
-      },
-      trigger: { seconds: 1 }, // fire shortly to avoid null issue
-    });
+  const startLearningSession = () => {
+    const learningDuration = duration || parseFloat(customDuration);
+    if (!learningDuration || isNaN(learningDuration)) {
+      Alert.alert('Invalid Duration', 'Please select or enter a valid learning time.');
+      return;
+    }
+
+    const totalSeconds = learningDuration * 3600;
+    setCountdown(totalSeconds);
+
+    Alert.alert(
+      'Learning Started!',
+      `You're now learning for ${learningDuration} hour(s).\n\nYou’ll hear an alarm when the session ends.`
+    );
   };
 
   return (
@@ -175,9 +103,9 @@ const LearnSchedulerScreen = () => {
         <LinearGradient colors={['#9f66d2', '#2575fc', '#bec9ec']} style={styles.container}>
           <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
             <Text style={styles.title}> Schedule Learning</Text>
-            <Text style={styles.subtitle}>Set a time for your study session, and we'll remind you.</Text>
+            <Text style={styles.subtitle}>Set a duration for your study session.</Text>
 
-            <Text style={styles.label}>Time</Text>
+            <Text style={styles.label}>Start Time</Text>
             <TouchableOpacity onPress={() => setShowPicker(true)} style={styles.timeBox}>
               <Text style={styles.timeText}>
                 {notificationTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -225,8 +153,8 @@ const LearnSchedulerScreen = () => {
               }}
             />
 
-            <TouchableOpacity style={styles.scheduleBtn} onPress={scheduleNotification}>
-              <Text style={styles.scheduleText}>Set Schedule</Text>
+            <TouchableOpacity style={styles.scheduleBtn} onPress={startLearningSession}>
+              <Text style={styles.scheduleText}>Start Learning</Text>
             </TouchableOpacity>
 
             {countdown !== null && countdown > 0 && (

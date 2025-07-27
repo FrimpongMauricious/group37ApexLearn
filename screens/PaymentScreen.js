@@ -13,8 +13,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { PayWithFlutterwave } from 'flutterwave-react-native';
 import { CourseContext } from '../context/CourseContext';
 import { NotificationContext } from '../context/NotificationContext';
-import * as Notifications from 'expo-notifications';
-import * as Device from 'expo-device';
 
 const PaymentScreen = ({ route, navigation }) => {
   const [newCourse, setNewCourse] = useState(null);
@@ -40,50 +38,6 @@ const PaymentScreen = ({ route, navigation }) => {
   };
 
   const dynamicAmount = extractAmount(newCourse?.amount || '');
-
-  const sendEnrollmentNotification = async (courseName) => {
-    try {
-      if (Device.isDevice) {
-        const { status } = await Notifications.getPermissionsAsync();
-        if (status !== 'granted') {
-          await Notifications.requestPermissionsAsync();
-        }
-      }
-
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title: '🎓 Enrolled Successfully!',
-          body: `You've enrolled in "${courseName}". Start learning now!`,
-          sound: 'default',
-        },
-        trigger: { seconds: 1 },
-      });
-    } catch (error) {
-      console.error('Error sending enrollment notification:', error);
-    }
-  };
-
-  const sendUploadNotification = async (courseName) => {
-    try {
-      if (Device.isDevice) {
-        const { status } = await Notifications.getPermissionsAsync();
-        if (status !== 'granted') {
-          await Notifications.requestPermissionsAsync();
-        }
-      }
-
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title: '🚀 Course Uploaded!',
-          body: `Your course "${courseName}" is now live on ApexLearn.`,
-          sound: 'default',
-        },
-        trigger: { seconds: 1 },
-      });
-    } catch (error) {
-      console.error('Error sending upload notification:', error);
-    }
-  };
 
   const handleOnRedirect = async (data) => {
     console.log('Payment response:', data);
@@ -112,12 +66,10 @@ const PaymentScreen = ({ route, navigation }) => {
         if (type === 'enroll') {
           await enrollInCourse(courseWithId);
           addNotification(`You successfully enrolled in ${courseWithId.name}`);
-          sendEnrollmentNotification(courseWithId.name);
           removeFromWishlist(courseWithId.id);
         } else if (type === 'upload') {
           addCourse(courseWithId);
           addNotification(`You uploaded your course: ${courseWithId.name}`);
-          sendUploadNotification(courseWithId.name);
         }
 
         navigation.navigate('Available Courses', { screen: 'AllCourses' });
