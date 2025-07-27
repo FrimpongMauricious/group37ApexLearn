@@ -20,7 +20,7 @@ export const CourseProvider = ({ children }) => {
 
       if (userEmail) {
         try {
-          const res = await axios.get(`https://updatedapexlearnbackend-1.onrender.com/api/users/email/${userEmail}`);
+          const res = await axios.get(`https://10.132.178.11:8080/api/users/email/${userEmail}`);
           const fetchedId = res.data.id;
           setUserId(fetchedId);
 

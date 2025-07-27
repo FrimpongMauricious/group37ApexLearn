@@ -269,7 +269,7 @@ const SignInWithEmail = ({ navigation }) => {
   const [rememberMe, setRememberMe] = useState(false);
   const [biometricPassed, setBiometricPassed] = useState(false);
 
-  const { loadUserData } = useContext(UserContext);
+  const { loadUserData, updateUser } = useContext(UserContext);
 
   const triggerBiometricAuth = async () => {
     const compatible = await LocalAuthentication.hasHardwareAsync();
@@ -299,7 +299,10 @@ const SignInWithEmail = ({ navigation }) => {
         password: password,
       });
 
-      const token = response.data;
+      console.log("Login response:", response.data);
+
+      const data = response.data;
+      const token = typeof data === 'string' ? data : data.token || data.message || JSON.stringify(data);
 
       if (
         !token ||
@@ -307,27 +310,32 @@ const SignInWithEmail = ({ navigation }) => {
         token.toLowerCase().includes('invalid') ||
         token.toLowerCase().includes('fail')
       ) {
-        Alert.alert("Login Failed", String(token));
+        Alert.alert("Login Failed", token);
         return;
       }
 
       await loadUserData(email);
+
+      // 🔁 Fetch and update user ID into context
+      try {
+        const idResponse = await axios.get(`https://updatedapexlearnbackend-1.onrender.com/users/email/${email}`);
+        if (idResponse?.data?.id) {
+          updateUser({ id: idResponse.data.id });
+        }
+      } catch (error) {
+        console.warn("⚠️ Could not fetch user ID after login", error);
+      }
+
       Alert.alert("Success", "Logged in via backend successfully");
       navigation.navigate('LoggedIn');
     } catch (err) {
       let alertMessage = "An unexpected error occurred.";
-
       try {
         const raw = err?.response?.data ?? err?.message ?? err;
-
         if (typeof raw === 'string') {
           alertMessage = raw;
         } else if (typeof raw === 'object' && raw !== null) {
-          if (typeof raw.message === 'string') {
-            alertMessage = raw.message;
-          } else {
-            alertMessage = JSON.stringify(raw);
-          }
+          alertMessage = raw.message || JSON.stringify(raw);
         } else {
           alertMessage = String(raw);
         }

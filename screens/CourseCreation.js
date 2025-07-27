@@ -1,17 +1,16 @@
 import {
   StyleSheet, Text, View, TouchableOpacity, KeyboardAvoidingView,
-  TouchableWithoutFeedback, Keyboard, Platform, ScrollView, Image, Alert
+  TouchableWithoutFeedback, Keyboard, Platform, ScrollView, Image, Alert, StatusBar
 } from 'react-native';
-import React, { useState, useContext } from 'react';
+import React, { useState,useContext } from 'react';
 import * as ImagePicker from 'expo-image-picker';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar';
 import { TextInput } from 'react-native-gesture-handler';
-import { UserContext } from '../context/UserContext';
 import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { UserContext } from '../context/UserContext';
 
 const CourseCreation = ({ navigation }) => {
+  const {user}= useContext(UserContext);
   const [thumbnail, setThumbnail] = useState(null);
   const [videoUrl, setVideoUrl] = useState('');
   const [courseName, setCourseName] = useState('');
@@ -19,8 +18,6 @@ const CourseCreation = ({ navigation }) => {
   const [tutorName, setTutorName] = useState('');
   const [organization, setOrganization] = useState('');
   const [price, setPrice] = useState('');
-
-  const { user } = useContext(UserContext);
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -39,46 +36,46 @@ const CourseCreation = ({ navigation }) => {
       return;
     }
 
-    const courseData = {
-      title: courseName,
-      tutorName,
-      organizationName: organization,
-      imageUrl: thumbnail,
-      videoPath: videoUrl,
-      description,
-      price: parseFloat(price),
-      uploadedBy: {
-        id: user?.id || 1,
-      },
-    };
-
-    console.log('📤 Sending to backend:', courseData);
+    const userEmail =   "frimpongmauricious@gmail.com"; // 🔒 Hardcoded for testing
+    console.log("📧 Using test email for lookup:", userEmail);
 
     try {
-      const token = await AsyncStorage.getItem("token");
+      const userRes = await axios.get(`https://updatedapexlearnbackend-1.onrender.com/api/users/email/${userEmail}`);
+      const userId = userRes.data.id;
+      console.log('✅ User ID fetched from backend:', userId);
 
-      const res = await axios.post(
-        'https://updatedapexlearnbackend-1.onrender.com/api/courses',
-        courseData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const courseData = {
+        title: courseName,
+        tutorName,
+        organizationName: organization,
+        imageUrl: thumbnail,
+        videoPath: videoUrl,
+        description,
+        price: parseFloat(price),
+        uploadedBy: { id: userId },
+      };
 
-      console.log('✅ Course posted successfully');
-      navigation.navigate('makePayment', { type: 'upload', newCourse: courseData });
+      console.log('📤 Prepared for backend:', courseData);
 
+      const response = await axios.post('https://updatedapexlearnbackend-1.onrender.com/api/courses', courseData);
+      console.log('✅ Course uploaded successfully:', response.data);
+      Alert.alert('Uploaded', 'Course posted to backend.');
+
+      navigation.navigate('makePayment', {
+        params: {
+          type: 'upload',
+          newCourse: courseData,
+        },
+      });
     } catch (error) {
-      console.error('❌ Failed to post course:', error.response?.data || error.message);
-      //  Alert.alert("Error", JSON.stringify(error.response?.data || error.message));
+      console.error('❌ Error uploading course:', error.response?.data || error.message);
+      Alert.alert('Upload Failed', 'Could not upload course. Check your connection or try again.');
     }
   };
 
   return (
     <SafeAreaProvider>
-      <StatusBar style="dark" backgroundColor="#fff" />
+      {/* <StatusBar barStyle="dark-content" /> */}
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
