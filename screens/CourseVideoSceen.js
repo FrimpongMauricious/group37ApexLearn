@@ -20,7 +20,7 @@ import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import { Image as RNImage } from 'react-native';
 import ConfettiCannon from 'react-native-confetti-cannon';
-import * as Notifications from 'expo-notifications';
+//import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 
 const CourseVideoScreen = () => {

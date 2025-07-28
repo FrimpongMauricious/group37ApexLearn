@@ -29,7 +29,7 @@
     },
     "plugins": [
       "expo-web-browser",
-      "expo-notifications",
+    
       "expo-localization"
     ],
     "extra": {

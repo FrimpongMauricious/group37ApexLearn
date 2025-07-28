@@ -326,7 +326,7 @@ const SignInWithEmail = ({ navigation }) => {
         console.warn("⚠️ Could not fetch user ID after login", error);
       }
 
-      Alert.alert("Success", "Logged in via backend successfully");
+      Alert.alert("Success", "Logged successfully");
       navigation.navigate('LoggedIn');
     } catch (err) {
       let alertMessage = "An unexpected error occurred.";

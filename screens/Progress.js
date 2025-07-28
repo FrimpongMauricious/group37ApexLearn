@@ -25,7 +25,7 @@ const ProgressScreen = () => {
     about: 'Get started with ApexLearn and learn how to use our app effectively.',
     image: defaultImage,
     progress: 74,
-    videoUrl: 'https://www.youtube.com/shorts/QrEe2CUj1lA',
+    videoUrl: 'https://youtube.com/shorts/qnU06iVbPKU',
   };
 
   const filteredEnrolled = enrolledCourses?.filter(course => course?.id !== 'intro-course') || [];

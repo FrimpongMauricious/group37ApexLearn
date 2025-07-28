@@ -59,7 +59,7 @@ const CourseCreation = ({ navigation }) => {
 
       const response = await axios.post('https://updatedapexlearnbackend-1.onrender.com/api/courses', courseData);
       console.log('✅ Course uploaded successfully:', response.data);
-      Alert.alert('Uploaded', 'Course posted to backend.');
+      Alert.alert('Uploaded', 'Course uploaded successfully!');
 
       navigation.navigate('makePayment', {
         params: {
