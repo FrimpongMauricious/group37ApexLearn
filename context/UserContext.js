@@ -15,14 +15,14 @@ export const UserProvider = ({ children }) => {
 
   const [notifications, setNotifications] = useState([]);
   const [userPoints, setUserPoints] = useState(0);
-  const [badgeLevel, setBadgeLevel] = useState(null); // blue, green, gold
+  const [badgeLevel, setBadgeLevel] = useState(null);
 
   useEffect(() => {
     const init = async () => {
       const email = await getCurrentUserEmail();
       if (email) {
-        loadUserData(email);
-        fetchUserPoints(email);
+        await loadUserData(email);
+        await fetchUserPoints(email);
       }
     };
     init();
@@ -35,7 +35,11 @@ export const UserProvider = ({ children }) => {
       const savedUser = await AsyncStorage.getItem(profileKey);
       const savedNotifs = await AsyncStorage.getItem(notifyKey);
 
-      if (savedUser) setUser(JSON.parse(savedUser));
+      if (savedUser) {
+        const parsed = JSON.parse(savedUser);
+        setUser(parsed);
+      }
+
       if (savedNotifs) setNotifications(JSON.parse(savedNotifs));
     } catch (err) {
       console.error('Error loading user data:', err);
@@ -47,6 +51,7 @@ export const UserProvider = ({ children }) => {
       const key = `userProfile_${data.email}`;
       await AsyncStorage.setItem(key, JSON.stringify(data));
       await AsyncStorage.setItem('lastLoggedInEmail', data.email);
+      setUser(data); // sync in-memory state immediately
     } catch (err) {
       console.error('Error saving user profile:', err);
     }
@@ -100,6 +105,7 @@ export const UserProvider = ({ children }) => {
         userPoints,
         badgeLevel,
         fetchUserPoints,
+        saveUserData,
       }}
     >
       {children}

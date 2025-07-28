@@ -55,7 +55,8 @@
     "react-native-youtube-iframe": "^2.4.0",
     "expo-localization": "~16.1.6",
     "expo-speech": "~13.1.7",
-    "expo-local-authentication": "~16.0.5"
+    "expo-local-authentication": "~16.0.5",
+    "expo-file-system": "~18.1.11"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

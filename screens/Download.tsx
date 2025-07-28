@@ -1,55 +1,79 @@
-// Download.js
 import React, { useEffect, useState, useContext } from 'react';
 import {
-  StyleSheet, Text, View, ScrollView, TouchableOpacity, Linking, Image, Alert
+  StyleSheet,
+  Text,
+  View,
+  ScrollView,
+  TouchableOpacity,
+  Linking,
+  Image,
+  Alert,
+  RefreshControl,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserContext } from '../context/UserContext';
-
-  import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 
-const pdfIcon = require('../assets/pdf_icon.png'); // Add a small pdf icon image to your assets folder
+const pdfIcon = require('../assets/pdf_icon.png');
 
 const Download = () => {
   const { user } = useContext(UserContext);
   const [certificates, setCertificates] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    const fetchCertificates = async () => {
-      const key = `certificates_${user.email}`;
+  const fetchCertificates = async () => {
+    if (!user?.email) return;
+    const key = `certificates_${user.email}`;
+    try {
       const stored = await AsyncStorage.getItem(key);
       if (stored) {
         setCertificates(JSON.parse(stored));
+      } else {
+        setCertificates([]);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching certificates:", error);
+      Alert.alert("Error", "Could not load certificates.");
+    }
+  };
+
+  useEffect(() => {
     fetchCertificates();
   }, []);
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchCertificates();
+    setRefreshing(false);
+  };
 
-const openCertificate = async (uri) => {
-  try {
-    const fileInfo = await FileSystem.getInfoAsync(uri);
-    if (!fileInfo.exists) {
-      Alert.alert("Error", "Certificate file not found.");
-      return;
+  const openCertificate = async (uri) => {
+    try {
+      const fileInfo = await FileSystem.getInfoAsync(uri);
+      if (!fileInfo.exists) {
+        Alert.alert("Error", "Certificate file not found.");
+        return;
+      }
+
+      const canShare = await Sharing.isAvailableAsync();
+      if (!canShare) {
+        Alert.alert("Error", "Sharing is not available on this device.");
+        return;
+      }
+
+      await Sharing.shareAsync(uri);
+    } catch (error) {
+      console.log("Error opening PDF:", error);
+      Alert.alert("Error", "Could not open certificate.");
     }
-
-    const canShare = await Sharing.isAvailableAsync();
-    if (!canShare) {
-      Alert.alert("Error", "Sharing is not available on this device.");
-      return;
-    }
-
-    await Sharing.shareAsync(uri); // Opens with WPS, Adobe, etc.
-  } catch (error) {
-    console.log("Error opening PDF:", error);
-    Alert.alert("Error", "Could not open certificate.");
-  }
-};
+  };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView
+      contentContainerStyle={styles.container}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+    >
       <Text style={styles.title}>Your Accomplishments</Text>
 
       {certificates.length === 0 ? (
