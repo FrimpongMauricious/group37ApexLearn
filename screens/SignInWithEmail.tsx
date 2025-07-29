@@ -252,7 +252,7 @@
 import {
   StyleSheet, Text, TextInput, TouchableOpacity, View,
   Alert, KeyboardAvoidingView, Platform, TouchableWithoutFeedback,
-  Keyboard, SafeAreaView
+  Keyboard, SafeAreaView, ActivityIndicator
 } from 'react-native';
 import React, { useState, useContext } from 'react';
 import Icon from 'react-native-vector-icons/FontAwesome5';
@@ -268,6 +268,7 @@ const SignInWithEmail = ({ navigation }) => {
   const [activeTab, setActiveTab] = useState('login');
   const [rememberMe, setRememberMe] = useState(false);
   const [biometricPassed, setBiometricPassed] = useState(false);
+  const [loading, setLoading] = useState(false); // Spinner state
 
   const { loadUserData, updateUser } = useContext(UserContext);
 
@@ -293,6 +294,8 @@ const SignInWithEmail = ({ navigation }) => {
       return;
     }
 
+    setLoading(true); // Start spinner
+
     try {
       const response = await axios.post('https://updatedapexlearnbackend-1.onrender.com/login', {
         username: email.toLowerCase(),
@@ -311,12 +314,12 @@ const SignInWithEmail = ({ navigation }) => {
         token.toLowerCase().includes('fail')
       ) {
         Alert.alert("Login Failed", token);
+        setLoading(false);
         return;
       }
 
       await loadUserData(email);
 
-      // 🔁 Fetch and update user ID into context
       try {
         const idResponse = await axios.get(`https://updatedapexlearnbackend-1.onrender.com/users/email/${email}`);
         if (idResponse?.data?.id) {
@@ -344,6 +347,8 @@ const SignInWithEmail = ({ navigation }) => {
       }
 
       Alert.alert("Error", alertMessage);
+    } finally {
+      setLoading(false); // Stop spinner
     }
   };
 
@@ -443,8 +448,16 @@ const SignInWithEmail = ({ navigation }) => {
                 </TouchableOpacity>
               )}
 
-              <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-                <Text style={styles.loginButtonText}>Login</Text>
+              <TouchableOpacity
+                style={[styles.loginButton, loading && { opacity: 0.7 }]}
+                onPress={handleLogin}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text style={styles.loginButtonText}>Login</Text>
+                )}
               </TouchableOpacity>
             </View>
           </Animatable.View>

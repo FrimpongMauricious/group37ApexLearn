@@ -2,7 +2,7 @@ import {
   StyleSheet, Text, View, TouchableOpacity, KeyboardAvoidingView,
   TouchableWithoutFeedback, Keyboard, Platform, ScrollView, Image, Alert, StatusBar
 } from 'react-native';
-import React, { useState,useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import * as ImagePicker from 'expo-image-picker';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { TextInput } from 'react-native-gesture-handler';
@@ -10,7 +10,7 @@ import axios from 'axios';
 import { UserContext } from '../context/UserContext';
 
 const CourseCreation = ({ navigation }) => {
-  const {user}= useContext(UserContext);
+  const { user } = useContext(UserContext);
   const [thumbnail, setThumbnail] = useState(null);
   const [videoUrl, setVideoUrl] = useState('');
   const [courseName, setCourseName] = useState('');
@@ -30,13 +30,23 @@ const CourseCreation = ({ navigation }) => {
     }
   };
 
+  const isValidYouTubeUrl = (url) => {
+    const pattern = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/(watch\?v=|embed\/|shorts\/)?[a-zA-Z0-9_-]{11}$/;
+    return pattern.test(url.trim());
+  };
+
   const handleProceedToPayment = async () => {
     if (!thumbnail || !courseName || !description || !tutorName || !organization || !price || !videoUrl) {
       Alert.alert('Incomplete', 'Please fill out all fields including price and video URL.');
       return;
     }
 
-    const userEmail =   "frimpongmauricious@gmail.com"; // 🔒 Hardcoded for testing
+    if (!isValidYouTubeUrl(videoUrl)) {
+      Alert.alert('Invalid Video URL', 'Please enter a valid YouTube video link.');
+      return;
+    }
+
+    const userEmail = "frimpongmauricious@gmail.com"; // 🔒 Hardcoded for testing
     console.log("📧 Using test email for lookup:", userEmail);
 
     try {
@@ -59,7 +69,7 @@ const CourseCreation = ({ navigation }) => {
 
       const response = await axios.post('https://updatedapexlearnbackend-1.onrender.com/api/courses', courseData);
       console.log('✅ Course uploaded successfully:', response.data);
-      Alert.alert('Uploaded', 'Course uploaded successfully!');
+      Alert.alert('Uploaded', 'Make Payment to publish your course.');
 
       navigation.navigate('makePayment', {
         params: {
@@ -75,7 +85,6 @@ const CourseCreation = ({ navigation }) => {
 
   return (
     <SafeAreaProvider>
-      {/* <StatusBar barStyle="dark-content" /> */}
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>

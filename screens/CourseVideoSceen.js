@@ -100,7 +100,7 @@ const CourseVideoScreen = () => {
         }
 
         if (!alreadyNotified) {
-          await sendCompletionNotification();
+          //await sendCompletionNotification();
           await AsyncStorage.setItem(notifyKey, 'true');
         }
       }
@@ -109,27 +109,27 @@ const CourseVideoScreen = () => {
     awardPointsAndNotify();
   }, [progress]);
 
-  const sendCompletionNotification = async () => {
-    try {
-      if (Device.isDevice) {
-        const { status } = await Notifications.getPermissionsAsync();
-        if (status !== 'granted') {
-          await Notifications.requestPermissionsAsync();
-        }
-      }
+  // const sendCompletionNotification = async () => {
+  //   try {
+  //     if (Device.isDevice) {
+  //       const { status } = await Notifications.getPermissionsAsync();
+  //       if (status !== 'granted') {
+  //         await Notifications.requestPermissionsAsync();
+  //       }
+  //     }
 
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title: '🎉 Course Completed!',
-          body: `You've successfully completed "${name}" on ApexLearn.`,
-          sound: 'default',
-        },
-        trigger: { seconds: 1 },
-      });
-    } catch (err) {
-      console.error('Failed to send completion notification:', err);
-    }
-  };
+  //     await Notifications.scheduleNotificationAsync({
+  //       content: {
+  //         title: '🎉 Course Completed!',
+  //         body: `You've successfully completed "${name}" on ApexLearn.`,
+  //         sound: 'default',
+  //       },
+  //       trigger: { seconds: 1 },
+  //     });
+  //   } catch (err) {
+  //     console.error('Failed to send completion notification:', err);
+  //   }
+  // };
 
   const toggleLesson = async (lesson) => {
     let updated = [...completedLessons];
