@@ -139,7 +139,24 @@ const qaPairs = [
   {
     keywords:['hmm','mmm','broke','bored','boredom','unhappy','sad','depressed','frustrated','angry','upset','disappointed'],
     answer:'I am here to help you! If you are feeling down, try taking a break, going for a walk, or engaging in a hobby you enjoy. If you need someone to talk to, I am here to listen.',
-  }
+  },
+  {
+    keywords:['hello', 'hi', 'hey', 'greetings', 'salutations', 'howdy', 'what\'s up', 'good day', 'good morning', 'good afternoon', 'good evening'],
+    answer: 'Hello! How can I assist you today? If you have any questions or need help, feel free to ask!'
+  },
+  {
+    keywords: ['bye', 'goodbye', 'see you later', 'farewell', 'take care', 'catch you later', 'until next time'],
+    answer: 'Goodbye! If you have any more questions in the future, feel free to ask. Have a great day!'
+  },
+  {
+    keywords: ['thank you', 'thanks', 'appreciate it', 'grateful', 'much appreciated', 'thanks a lot'],
+    answer: 'You are welcome! I am here to help you with anything you need.'
+  },
+  // {
+  //   keywords: ['help', 'support', 'assistance', 'aid', 'guidance', 'help me', 'need help', 'support request', 'assistance needed'],
+  //   answer: 'I am here to help you! Just ask your question and I will do my best to assist you.'
+  // },
+
 ];
 
 const suggestionsList = [
